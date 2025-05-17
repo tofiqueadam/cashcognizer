@@ -1,0 +1,61 @@
+# ========================
+# Flutter/Dart/Pub
+# ========================
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/  # <--- Ensure this is uncommented to exclude all build directories
+/app/build/  # <--- Add this for Android-specific builds
+
+# ========================
+# Android
+# ========================
+# Exclude APK and build artifacts
+*.apk
+*.aab
+*.ap_
+*.aar
+*.jar
+/outputs/
+
+# Android Studio directories
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ========================
+# Miscellaneous
+# ========================
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# ========================
+# IDEs
+# ========================
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code (uncomment if needed)
+#.vscode/
+
+# ========================
+# Obfuscation/Symbolication
+# ========================
+app.*.symbols
+app.*.map.json
