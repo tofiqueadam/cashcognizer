@@ -8,8 +8,8 @@
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/  # <--- Ensure this is uncommented to exclude all build directories
-/app/build/  # <--- Add this for Android-specific builds
+build/  # <--- Ensure this is uncommented to exclude all build directories
+app/build/  # <--- Add this for Android-specific builds
 
 # ========================
 # Android

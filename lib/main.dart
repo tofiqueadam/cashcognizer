@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
       
       debugShowCheckedModeBanner: false,
       title: 'Flutter Camera App',
+
       theme: ThemeData(
         fontFamily: 'inter',
         useMaterial3: true,

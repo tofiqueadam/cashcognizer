@@ -111,6 +111,7 @@ INJECTED from C:\Users\HP\AndroidStudioProjects\Cash_Cognify\android\app\src\deb
 MERGED from [:audioplayers_android] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\audioplayers_android\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-7:12
 MERGED from [:camera_android_camerax] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\camera_android_camerax\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-15:12
 MERGED from [:cloud_firestore] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\cloud_firestore\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-15:12
+MERGED from [:device_info_plus] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\device_info_plus\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-7:12
 MERGED from [:firebase_auth] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\firebase_auth\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-15:12
 MERGED from [:firebase_core] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\firebase_core\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-15:12
 MERGED from [:image_picker_android] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\image_picker_android\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-34:12
@@ -123,6 +124,7 @@ MERGED from [:path_provider_android] C:\Users\HP\AndroidStudioProjects\Cash_Cogn
 MERGED from [:permission_handler_android] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\permission_handler_android\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-7:12
 MERGED from [:speech_to_text] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\speech_to_text\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-7:12
 MERGED from [:torch_light] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\torch_light\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-7:12
+MERGED from [:vibration] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\vibration\intermediates\merged_manifest\debug\AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.camera:camera-video:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\5d08a4695e870636cb0871a6dd1d565c\transformed\jetified-camera-video-1.4.1\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.camera:camera-lifecycle:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\d89d640374e9228a5c7c4e341be040f6\transformed\jetified-camera-lifecycle-1.4.1\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.camera:camera-camera2:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\8d5555789cb02897c66f6277e075cb06\transformed\jetified-camera-camera2-1.4.1\AndroidManifest.xml:17:1-36:12
@@ -272,6 +274,8 @@ MERGED from [:camera_android_camerax] C:\Users\HP\AndroidStudioProjects\Cash_Cog
 MERGED from [:camera_android_camerax] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\camera_android_camerax\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:cloud_firestore] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\cloud_firestore\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:cloud_firestore] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\cloud_firestore\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
+MERGED from [:device_info_plus] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\device_info_plus\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
+MERGED from [:device_info_plus] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\device_info_plus\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:firebase_auth] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\firebase_auth\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:firebase_auth] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\firebase_auth\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:firebase_core] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\firebase_core\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
@@ -296,6 +300,8 @@ MERGED from [:speech_to_text] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\bui
 MERGED from [:speech_to_text] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\speech_to_text\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:torch_light] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\torch_light\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [:torch_light] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\torch_light\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
+MERGED from [:vibration] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\vibration\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
+MERGED from [:vibration] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\vibration\intermediates\merged_manifest\debug\AndroidManifest.xml:5:5-44
 MERGED from [androidx.camera:camera-video:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\5d08a4695e870636cb0871a6dd1d565c\transformed\jetified-camera-video-1.4.1\AndroidManifest.xml:5:5-44
 MERGED from [androidx.camera:camera-video:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\5d08a4695e870636cb0871a6dd1d565c\transformed\jetified-camera-video-1.4.1\AndroidManifest.xml:5:5-44
 MERGED from [androidx.camera:camera-lifecycle:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\d89d640374e9228a5c7c4e341be040f6\transformed\jetified-camera-lifecycle-1.4.1\AndroidManifest.xml:5:5-44
@@ -598,6 +604,10 @@ ADDED from [:image_picker_android] C:\Users\HP\AndroidStudioProjects\Cash_Cognif
 		ADDED from [:image_picker_android] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\image_picker_android\intermediates\merged_manifest\debug\AndroidManifest.xml:30:17-33
 	android:name
 		ADDED from [:image_picker_android] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\image_picker_android\intermediates\merged_manifest\debug\AndroidManifest.xml:29:17-63
+uses-permission#android.permission.VIBRATE
+ADDED from [:vibration] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\vibration\intermediates\merged_manifest\debug\AndroidManifest.xml:7:5-66
+	android:name
+		ADDED from [:vibration] C:\Users\HP\AndroidStudioProjects\Cash_Cognify\build\vibration\intermediates\merged_manifest\debug\AndroidManifest.xml:7:22-63
 service#androidx.camera.core.impl.MetadataHolderService
 ADDED from [androidx.camera:camera-camera2:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\8d5555789cb02897c66f6277e075cb06\transformed\jetified-camera-camera2-1.4.1\AndroidManifest.xml:24:9-33:19
 MERGED from [androidx.camera:camera-core:1.4.1] C:\Users\HP\.gradle\caches\transforms-3\e30b93e28f8c603bcc65f2965e3a57ed\transformed\jetified-camera-core-1.4.1\AndroidManifest.xml:29:9-33:78
