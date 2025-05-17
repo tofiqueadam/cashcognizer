@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Text highlighting variables
   int _currentSpokenIndex = 0;
   List<String> _textLines = [];
-  late ScrollController _scrollController;
+  final ScrollController _scrollController = ScrollController();
   String _currentSpokenText = '';
   bool _isSpeaking = false;
 
@@ -60,28 +60,31 @@ class _HomeScreenState extends State<HomeScreen> {
     loadModel();
     textRecognizer = TextRecognizer();
     flutterTts = FlutterTts();
-    _scrollController = ScrollController();
+    _initializeTts(); // Call the async initialization
 
     if (widget.cameras.isNotEmpty) {
       _initializeCamera(widget.cameras.first);
     }
 
     // Voice settings
-    flutterTts.setPitch(1.0);
-    flutterTts.setVolume(1.0);
-    flutterTts.setLanguage('en-US');
-    flutterTts.setCompletionHandler(() {
-      // This will be called when speech completes
-    });
     }
-
+  Future<void> _initializeTts() async {
+    try {
+      await flutterTts.setSpeechRate(0.5);
+      await flutterTts.setPitch(1.0);
+      await flutterTts.setVolume(1.0);
+      await flutterTts.setLanguage('en-US');
+      await flutterTts.awaitSpeakCompletion(true);
+    } catch (e) {
+      print("Error initializing TTS: $e");
+    }
+  }
   Future<void> loadModel() async {
     try {
       await Tflite.loadModel(
         model: "assets/model_unquant.tflite",
         labels: "assets/labels.txt",
       );
-      print('Model loaded successfully');
     } catch (e) {
       print("Failed to load model: $e");
     }
@@ -127,11 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
           final message = label == 'Unrecognized Note'
               ? 'Unrecognized currency. Please try again.'
               : '${label.replaceAll(' Birr', '')} Birr detected with ${confidence.toStringAsFixed(1)} percent confidence';
-
           await flutterTts.speak(message);
         }
       } catch (e) {
-        print("Currency detection error: $e");
         await flutterTts.speak('Error detecting currency. Please try again.');
       }
     } else {
@@ -157,7 +158,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _isSpeaking = false;
         }
       } catch (e) {
-        print("OCR error: $e");
         setState(() {
           label = 'Text recognition failed';
           confidence = 0.0;
@@ -167,41 +167,46 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-// Modify the _speakTextSequentially method
   Future<void> _speakTextSequentially(List<String> lines) async {
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
       if (line.trim().isEmpty) continue;
 
-      // Update UI for current line
       setState(() {
         _currentSpokenIndex = i;
         _currentSpokenText = line;
       });
 
-      // Calculate scroll position
-      if (_scrollController.hasClients) {
-        final lineHeight = 24.0;
-        final panelHeight = MediaQuery.of(context).size.height * _panelHeightFactor;
-        final targetOffset = (i * lineHeight) - (panelHeight / 3);
-        _scrollController.animateTo(
-          targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
-      }
+      // Scroll to the current line when speech starts
+      _scrollToLine(i);
 
-      // Calculate speaking time (4 characters per 100ms as a rough estimate)
-      final delayDuration = Duration(milliseconds: (line.length * 30).clamp(500, 5000));
-
-      // Speak with proper await
+      // Speak the line and wait for completion
       await flutterTts.speak(line);
-      await Future.delayed(delayDuration); // Wait for speech to complete
+      await flutterTts.awaitSpeakCompletion(true);
+
+      // Small natural pause between lines (shorter than before)
+      if (i < lines.length - 1) {
+        await Future.delayed(Duration(milliseconds: 300));
+      }
     }
 
     setState(() {
       _currentSpokenText = '';
     });
+  }
+
+  void _scrollToLine(int lineIndex) {
+    if (!_scrollController.hasClients) return;
+
+    final lineHeight = 24.0; // Adjust based on your text size
+    final panelHeight = MediaQuery.of(context).size.height * _panelHeightFactor;
+    final targetOffset = (lineIndex * lineHeight) - (panelHeight / 3);
+
+    _scrollController.animateTo(
+      targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+      duration: Duration(milliseconds: 500),
+      curve: Curves.easeOut,
+    );
   }
 
   Future<void> _takePicture() async {
@@ -305,11 +310,12 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_isSpeaking && currentMode == 'text')
             IconButton(
               icon: Icon(Icons.stop, color: Colors.white),
-              onPressed: () {
+              onPressed: () async {
+                await flutterTts.stop();
                 flutterTts.stop();
-                setState(() {
-                  _isSpeaking = false;
-                  _currentSpokenText = '';
+                setState(() {_isSpeaking = false;
+                _currentSpokenText = '';
+                _currentSpokenIndex = -1;
                 });
               },
             ),
@@ -466,7 +472,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        if (_isSpeaking) LinearProgressIndicator(),
                         Expanded(
                           child: SingleChildScrollView(
                             controller: _scrollController,
