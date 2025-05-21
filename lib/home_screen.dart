@@ -42,6 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _gesturesEnabled = true;
   DateTime? _lastTap;
   bool _isPaused = false;
+  bool _darkMode = false;
+
 
   // Text highlighting variables
   int _currentSpokenIndex = 0;
@@ -54,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _volume = 1.0;
   double _pitch = 1.0;
 
-  late Map<String, String> _availableVoices = {};
+  List<Map<String, String>> _availableVoices = [];
   String _currentVoice = 'default';
 
 
@@ -87,38 +89,24 @@ class _HomeScreenState extends State<HomeScreen> {
     // Get available voices
     var voices = await flutterTts.getVoices;
     if (voices != null) {
-      _availableVoices = {
-        for (var voice in voices.cast<Map<dynamic, dynamic>>())
-          if (voice['name'] != null && voice['locale'] != null)
-            voice['name']: "${voice['name']} (${voice['locale']})"
-      };
-    }
-    // Fallback if no voices found
-    if (_availableVoices.isEmpty) {
-      _availableVoices = {
-        'default': 'Default System Voice',
-        'male': 'Male Voice (Simulated)',
-        'female': 'Female Voice (Simulated)'
-      };
+      _availableVoices = voices.cast<Map<dynamic, dynamic>>()
+          .where((voice) => voice['name'] != null && voice['locale'] != null)
+          .map((voice) => {
+        'name': voice['name']!,
+        'locale': voice['locale']!,
+      }).toList();
     }
 
     setState(() {});
   }
-  Future<void> _setVoice(String voiceId) async {
+  Future<void> _setVoice(Map<String, String> voice) async {
     try {
-      if (_availableVoices.containsKey(voiceId)) {
-        await flutterTts.setVoice({"name": voiceId});
-        setState(() => _currentVoice = voiceId);
-      } else {
-        // Handle simulated voices
-        if (voiceId == 'male') {
-          await flutterTts.setPitch(0.8);
-          await flutterTts.setSpeechRate(0.4);
-        } else if (voiceId == 'female') {
-          await flutterTts.setPitch(1.2);
-          await flutterTts.setSpeechRate(0.5);
-        }
-      }
+      await flutterTts.setVoice({
+        'name': voice['name']!.toString(),
+        'locale': voice['locale']!.toString(),
+
+      });
+      setState(() => _currentVoice = voice['name']!);
     } catch (e) {
       print("Error setting voice: $e");
     }

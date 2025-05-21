@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class SettingsScreen extends StatefulWidget {
   final bool initialGestureState;
   final double initialSpeechRate;
   final double initialVolume;
   final double initialPitch;
-  final Map<String, String> availableVoices;
+  final List<Map<String, String>> availableVoices;
   final String initialVoice;
-
   final ValueChanged<bool>? onGestureStateChanged;
   final ValueChanged<double>? onSpeechRateChanged;
   final ValueChanged<double>? onVolumeChanged;
   final ValueChanged<double>? onPitchChanged;
-  final ValueChanged<String>? onVoiceChanged;
+  final ValueChanged<Map<String, String>>? onVoiceChanged;
+  final bool initialDarkMode;
+  final ValueChanged<bool>? onDarkModeChanged;
 
 
   const SettingsScreen({
@@ -24,11 +24,13 @@ class SettingsScreen extends StatefulWidget {
     this.initialPitch = 1.0,
     required this.availableVoices,
     required this.initialVoice,
+    this.initialDarkMode = false, // Add this
     this.onGestureStateChanged,
     this.onSpeechRateChanged,
     this.onVolumeChanged,
     this.onPitchChanged,
     this.onVoiceChanged,
+    this.onDarkModeChanged, // Add this
 
   }) : super(key: key);
 
@@ -37,12 +39,13 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool isDarkMode = false;
   late bool _gesturesEnabled;
   late double _speechRate;
   late double _volume;
   late double _pitch;
   late String _selectedVoice;
+  late bool _darkMode; // Add this
+
 
   @override
   void initState() {
@@ -52,50 +55,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _volume = widget.initialVolume;
     _pitch = widget.initialPitch;
     _selectedVoice = widget.initialVoice;
+    _darkMode = widget.initialDarkMode; // Initialize dark mode
 
+  }
+  // Add this new method for dark mode toggle
+  Widget _buildDarkModeToggle() {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: _darkMode ? Color(0xff1a0d24) : Colors.grey[200],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: SwitchListTile(
+        title: Text("Dark Mode",
+            style: TextStyle(color: _darkMode ? Colors.white : Colors.black)),
+        subtitle: Text("Toggle between light and dark theme",
+            style: TextStyle(color: _darkMode ? Colors.white54 : Colors.black54)),
+        value: _darkMode,
+        onChanged: (value) {
+          setState(() => _darkMode = value);
+          widget.onDarkModeChanged?.call(value);
+        },
+        activeColor: Color(0xff6a1b9a),
+      ),
+    );
   }
 
   Widget _buildVoiceSelection() {
+    if (widget.availableVoices.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    // Find the current voice in the available voices
+    final currentVoice = widget.availableVoices.firstWhere(
+          (voice) => voice['name'] == _selectedVoice,
+      orElse: () => widget.availableVoices.first,
+    );
+
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: Color(0xff1a0d24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Voice Type",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
+            Text("Voice Type", style: TextStyle(color: Colors.white, fontSize: 16)),
             SizedBox(height: 8),
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<Map<String, String>>(
               dropdownColor: Color(0xff281537),
-              value: _selectedVoice,
-              items: widget.availableVoices.entries.map((entry) {
-                return DropdownMenuItem(
-                  value: entry.key,
+              value: currentVoice,
+              items: widget.availableVoices.map((voice) {
+                return DropdownMenuItem<Map<String, String>>(
+                  value: voice,
                   child: Text(
-                    entry.value,
+                    "${voice['name']} (${voice['locale'] == 'simulated' ? 'Simulated' : voice['locale']})",
                     style: TextStyle(color: Colors.white),
                   ),
                 );
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
-                  setState(() => _selectedVoice = value);
+                  setState(() => _selectedVoice = value['name']!);
                   widget.onVoiceChanged?.call(value);
                 }
               },
               decoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Color(0xff6a1b9a)),
-                ),
-                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Color(0xff6a1b9a)),
                 ),
@@ -112,33 +137,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: Color(0xff281537),
-    ));
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff281537),
-        title: Text(
-          "Settings",
-          style: TextStyle(color: Colors.white),
-        ),
-        iconTheme: IconThemeData(color: Colors.white),
+        backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+        title: Text("Settings",
+            style: TextStyle(color: _darkMode ? Colors.white : Colors.white)),
+        iconTheme: IconThemeData(color: _darkMode ? Colors.white : Colors.white),
       ),
       body: Container(
-        color: Colors.black,
+        color: _darkMode ? Colors.black : Colors.grey[100],
         child: ListView(
           padding: EdgeInsets.symmetric(vertical: 16),
           children: [
+            _buildSectionHeader("Appearance"),
+            _buildDarkModeToggle(), // Add this
             _buildSectionHeader("Accessibility"),
             _buildGestureToggle(),
-            _buildDarkModeToggle(),
             _buildSectionHeader("Voice Settings"),
+            _buildVoiceSelection(),
             _buildSpeechRateSlider(),
             _buildVolumeSlider(),
             _buildPitchSlider(),
-            _buildSectionHeader("Appearance"),
-            _buildThemeOptions(),
           ],
         ),
       ),
@@ -151,7 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Text(
         title,
         style: TextStyle(
-          color: Colors.white70,
+          color: _darkMode ? Colors.white70 : Colors.black54,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -163,199 +182,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: Color(0xff1a0d24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: SwitchListTile(
-        title: Text(
-          "Gesture Controls",
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        subtitle: Text(
-          "Enable swipe and tap gestures for navigation",
-          style: TextStyle(color: Colors.white54),
-        ),
+        title: Text("Gesture Controls", style: TextStyle(color: Colors.white)),
+        subtitle: Text("Enable swipe and tap gestures for navigation",
+            style: TextStyle(color: Colors.white54)),
         value: _gesturesEnabled,
         onChanged: (value) {
-          setState(() {
-            _gesturesEnabled = value;
-          });
+          setState(() => _gesturesEnabled = value);
           widget.onGestureStateChanged?.call(value);
         },
         activeColor: Color(0xff6a1b9a),
-        inactiveThumbColor: Colors.grey[600],
-        inactiveTrackColor: Colors.grey[800],
-      ),
-    );
-  }
-
-  Widget _buildDarkModeToggle() {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: Color(0xff1a0d24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: SwitchListTile(
-        title: Text(
-          "Dark Mode",
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-        subtitle: Text(
-          "Switch between light and dark theme",
-          style: TextStyle(color: Colors.white54),
-        ),
-        value: isDarkMode,
-        onChanged: (value) {
-          setState(() {
-            isDarkMode = value;
-          });
-        },
-        activeColor: Color(0xff6a1b9a),
-        inactiveThumbColor: Colors.grey[600],
-        inactiveTrackColor: Colors.grey[800],
       ),
     );
   }
 
   Widget _buildSpeechRateSlider() {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: Color(0xff1a0d24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Speech Rate: ${_speechRate.toStringAsFixed(1)}",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            Slider(
-              value: _speechRate,
-              min: 0.3,
-              max: 1.0,
-              divisions: 7,
-              label: _speechRate.toStringAsFixed(1),
-              activeColor: Color(0xff6a1b9a),
-              inactiveColor: Colors.grey[800],
-              onChanged: (value) {
-                setState(() {
-                  _speechRate = value;
-                });
-                widget.onSpeechRateChanged?.call(value);
-              },
-            ),
-          ],
-        ),
-      ),
+    return _buildSlider(
+      "Speech Rate",
+      _speechRate,
+      0.3,
+      1.0,
+          (value) {
+        setState(() => _speechRate = value);
+        widget.onSpeechRateChanged?.call(value);
+      },
+      "${_speechRate.toStringAsFixed(1)}x",
     );
   }
 
   Widget _buildVolumeSlider() {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: Color(0xff1a0d24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Volume: ${(_volume * 100).toStringAsFixed(0)}%",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            Slider(
-              value: _volume,
-              min: 0.0,
-              max: 1.0,
-              divisions: 10,
-              label: (_volume * 100).toStringAsFixed(0),
-              activeColor: Color(0xff6a1b9a),
-              inactiveColor: Colors.grey[800],
-              onChanged: (value) {
-                setState(() {
-                  _volume = value;
-                });
-                widget.onVolumeChanged?.call(value);
-              },
-            ),
-          ],
-        ),
-      ),
+    return _buildSlider(
+      "Volume",
+      _volume,
+      0.0,
+      1.0,
+          (value) {
+        setState(() => _volume = value);
+        widget.onVolumeChanged?.call(value);
+      },
+      "${(_volume * 100).toStringAsFixed(0)}%",
     );
   }
 
   Widget _buildPitchSlider() {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: Color(0xff1a0d24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Pitch: ${_pitch.toStringAsFixed(1)}",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            Slider(
-              value: _pitch,
-              min: 0.5,
-              max: 2.0,
-              divisions: 15,
-              label: _pitch.toStringAsFixed(1),
-              activeColor: Color(0xff6a1b9a),
-              inactiveColor: Colors.grey[800],
-              onChanged: (value) {
-                setState(() {
-                  _pitch = value;
-                });
-                widget.onPitchChanged?.call(value);
-              },
-            ),
-          ],
-        ),
-      ),
+    return _buildSlider(
+      "Pitch",
+      _pitch,
+      0.5,
+      2.0,
+          (value) {
+        setState(() => _pitch = value);
+        widget.onPitchChanged?.call(value);
+      },
+      _pitch.toStringAsFixed(1),
     );
   }
 
-  Widget _buildThemeOptions() {
+  Widget _buildSlider(String title, double value, double min, double max,
+      ValueChanged<double> onChanged, String label) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: Color(0xff1a0d24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          ListTile(
-            title: Text(
-              "Primary Color",
-              style: TextStyle(color: Colors.white),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("$title: $label", style: TextStyle(color: Colors.white)),
+            Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: (max - min) ~/ 0.1,
+              label: label,
+              activeColor: Color(0xff6a1b9a),
+              inactiveColor: Colors.grey[800],
+              onChanged: onChanged,
             ),
-            trailing: Icon(Icons.chevron_right, color: Colors.white54),
-            onTap: () {},
-          ),
-          Divider(height: 1, color: Colors.white12),
-          ListTile(
-            title: Text(
-              "Font Size",
-              style: TextStyle(color: Colors.white),
-            ),
-            trailing: Icon(Icons.chevron_right, color: Colors.white54),
-            onTap: () {},
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
