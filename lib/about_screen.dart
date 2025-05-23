@@ -1,31 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'screen_reader_helper.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends StatefulWidget {
   final bool darkMode;
 
-  const AboutScreen({Key? key, this.darkMode = false}) : super(key: key);
+  const AboutScreen({
+    Key? key,
+    this.darkMode = false
+  }) : super(key: key);
+
+  @override
+  _AboutScreenState createState() => _AboutScreenState();
+}
+
+class _AboutScreenState extends State<AboutScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _readContent();
+    });
+  }
+
+  @override
+  void dispose() {
+    ScreenReaderHelper.stop();
+    super.dispose();
+  }
+
+  void _readContent() {
+    final content = """
+    How to Use CashCognize. 
+    Currency Detection: Point your camera at any Ethiopian currency and CashCognize will identify it.
+    Text Recognition: Switch to text mode to read and hear text from documents or other sources.
+    Troubleshooting: Having trouble? Try adjusting distance, lighting, or orientation of the object.
+    For best results, ensure good lighting and hold the camera steady.
+    """;
+
+    ScreenReaderHelper.readContent(content);
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Set system UI colors based on theme
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+      systemNavigationBarColor: widget.darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
       systemNavigationBarIconBrightness: Brightness.light,
     ));
 
-    final backgroundColor = darkMode ? Colors.black : Colors.grey[100];
-    final primaryColor = darkMode ? Color(0xff281537) : Color(0xff6a1b9a);
-    final textColor = darkMode ? Colors.white : Colors.black87;
-    final buttonColor = darkMode ? Color(0xff543378) : Color(0xff6a1b9a);
+    final backgroundColor = widget.darkMode ? Colors.black : Colors.grey[100];
+    final primaryColor = widget.darkMode ? Color(0xff281537) : Color(0xff6a1b9a);
+    final textColor = widget.darkMode ? Colors.white : Colors.black87;
+    final buttonColor = widget.darkMode ? Color(0xff543378) : Color(0xff6a1b9a);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
-        title: Text(
-          'Help',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('Help', style: TextStyle(color: Colors.white)),
         iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -41,11 +72,7 @@ class AboutScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       SizedBox(height: 20),
-                      Icon(
-                        Icons.help_outline,
-                        size: 60,
-                        color: primaryColor,
-                      ),
+                      Icon(Icons.help_outline, size: 60, color: primaryColor),
                       SizedBox(height: 30),
                       Text(
                         'How to Use CashCognize',
@@ -84,7 +111,7 @@ class AboutScreen extends StatelessWidget {
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: darkMode ? Colors.grey[900] : Colors.grey[200],
+                          color: widget.darkMode ? Colors.grey[900] : Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

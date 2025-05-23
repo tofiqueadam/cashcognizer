@@ -17,6 +17,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import 'profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'settings_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -45,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _gesturesEnabled = true;
   DateTime? _lastTap;
   bool _isPaused = false;
-  bool _darkMode = false;
   int _currentSpokenIndex = 0;
   List<String> _textLines = [];
   final ScrollController _scrollController = ScrollController();
@@ -64,8 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
     '200 Birr'
   ];
 
-
-
   @override
   void initState() {
     super.initState();
@@ -80,29 +79,30 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   Future<void> _initTts() async {
     await flutterTts.awaitSpeakCompletion(true);
 
     // Get available voices
     var voices = await flutterTts.getVoices;
     if (voices != null) {
-      _availableVoices = voices.cast<Map<dynamic, dynamic>>()
+      _availableVoices = voices
+          .cast<Map<dynamic, dynamic>>()
           .where((voice) => voice['name'] != null && voice['locale'] != null)
           .map((voice) => {
-        'name': voice['name']!,
-        'locale': voice['locale']!,
-      }).toList();
+                'name': voice['name']!,
+                'locale': voice['locale']!,
+              })
+          .toList();
     }
 
     setState(() {});
   }
+
   Future<void> _setVoice(Map<String, String> voice) async {
     try {
       await flutterTts.setVoice({
         'name': voice['name']!.toString(),
         'locale': voice['locale']!.toString(),
-
       });
       setState(() => _currentVoice = voice['name']!);
     } catch (e) {
@@ -112,7 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initializeTts() async {
     try {
-
       await flutterTts.setSpeechRate(_speechRate);
       await flutterTts.setPitch(_pitch);
       await flutterTts.setVolume(_volume);
@@ -148,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-
   Future<void> classifyImage(File image) async {
     if (currentMode == 'currency') {
       try {
@@ -162,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (recognitions != null && recognitions.isNotEmpty) {
           final best = recognitions.firstWhere(
-                (r) => validCurrencies.contains(r['label']),
+            (r) => validCurrencies.contains(r['label']),
             orElse: () => recognitions.first,
           );
 
@@ -292,7 +290,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _pickImage() async {
     await flutterTts.stop();
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -317,6 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await _speak(_flashOn ? "Flash on" : "Flash off");
     }
   }
+
   void _resetState() {
     setState(() {
       _imageFile = null;
@@ -339,7 +339,8 @@ class _HomeScreenState extends State<HomeScreen> {
       currentMode = value;
       _selectedIndex = 0; // Reset to camera view when mode changes
     });
-    await _speak("Switched to ${currentMode == 'currency' ? 'currency' : 'text'} mode");
+    await _speak(
+        "Switched to ${currentMode == 'currency' ? 'currency' : 'text'} mode");
   }
 
   Future<void> _speak(String message) async {
@@ -385,7 +386,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _speak("Gallery mode");
         }
       },
-
       onVerticalDragEnd: (details) {
         if (!_gesturesEnabled) return;
         _vibrate();
@@ -403,7 +403,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!_gesturesEnabled) return;
 
         final now = DateTime.now();
-        if (_lastTap != null && now.difference(_lastTap!) < Duration(milliseconds: 300)) {
+        if (_lastTap != null &&
+            now.difference(_lastTap!) < Duration(milliseconds: 300)) {
           // Double tap - take picture/select image
           _lastTap = null;
           _vibrate();
@@ -443,21 +444,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showGestureHelp() async {
-    await _speak(
-        "Gesture Help Guide. "
-            "Swipe left or right to switch between camera and gallery. "
-            "Swipe up or down to change between text and currency modes. "
-            "Double tap to capture image or select from gallery. "
-            "In text mode, single tap to pause or resume reading. "
-            "You can disable gestures in settings if needed."
-    );
+    await _speak("Gesture Help Guide. "
+        "Swipe left or right to switch between camera and gallery. "
+        "Swipe up or down to change between text and currency modes. "
+        "Double tap to capture image or select from gallery. "
+        "In text mode, single tap to pause or resume reading. "
+        "You can disable gestures in settings if needed.");
   }
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+      systemNavigationBarColor: settingsProvider.darkMode ? const Color(0xff281537) : const Color(0xff6a1b9a),
     ));
+
 
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
@@ -469,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return _buildGestureDetector(
           Scaffold(
             appBar: AppBar(
-              backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+              backgroundColor: settingsProvider.darkMode ? const Color(0xff281537) : const Color(0xff6a1b9a),
               title: Text(
                 currentMode == 'currency'
                     ? 'Currency Detection'
@@ -498,7 +500,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   icon: currentMode == "text"
                       ? Icon(Icons.language, color: Colors.white)
-                      : Image.asset('assets/ethiopian_flag.png', width: 24, height: 24),
+                      : Image.asset('assets/ethiopian_flag.png',
+                          width: 24, height: 24),
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -512,193 +515,234 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icon(Icons.info_outline, color: Colors.white),
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AboutScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => AboutScreen(darkMode: settingsProvider.darkMode)),
                   ),
                 ),
               ],
             ),
-            drawer: _buildDrawer(user),
+            drawer: _buildDrawer(user, settingsProvider),
             body: Container(
-              color: _darkMode ? Colors.black : Colors.grey[100],
+              color: settingsProvider.darkMode ? Colors.black : Colors.grey[100],
               child: Center(
                 child: _selectedIndex == 0
-                    ? (_cameraController == null || !_cameraController!.value.isInitialized)
-                    ? Center(child: CircularProgressIndicator())
-                    : LayoutBuilder(
-                  builder: (context, constraints) {
-                    final previewSize = _cameraController!.value.previewSize!;
-                    final screenRatio = constraints.maxWidth / constraints.maxHeight;
-                    final previewRatio = previewSize.height / previewSize.width;
+                    ? (_cameraController == null ||
+                            !_cameraController!.value.isInitialized)
+                        ? Center(child: CircularProgressIndicator())
+                        : LayoutBuilder(
+                            builder: (context, constraints) {
+                              final previewSize =
+                                  _cameraController!.value.previewSize!;
+                              final screenRatio =
+                                  constraints.maxWidth / constraints.maxHeight;
+                              final previewRatio =
+                                  previewSize.height / previewSize.width;
 
-                    return Stack(
-                      children: [
-                        OverflowBox(
-                          maxWidth: screenRatio > previewRatio
-                              ? constraints.maxWidth
-                              : constraints.maxHeight * previewRatio,
-                          maxHeight: screenRatio > previewRatio
-                              ? constraints.maxWidth / previewRatio
-                              : constraints.maxHeight,
-                          child: CameraPreview(_cameraController!),
-                        ),
-                        Positioned(
-                          bottom: 20,
-                          right: 20,
-                          child: GestureDetector(
-                            onTap: _toggleFlash,
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Colors.black.withOpacity(0.5),
-                              child: Icon(
-                                _flashOn ? Icons.flash_on : Icons.flash_off,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 20,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: GestureDetector(
-                              onTap: _takePicture,
-                              child: CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Colors.white,
-                                child: Icon(Icons.camera, size: 36),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                )
-                    : GestureDetector(
-                  onTap: _pickImage,
-                  child: _imageFile == null
-                      ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.photo, size: 100, color: Colors.grey),
-                      SizedBox(height: 20),
-                      Text(
-                        'Select ${currentMode == 'currency' ? 'banknote' : 'text'} image',
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                    ],
-                  )
-                      : Stack(
-                    children: [
-                      Positioned.fill(
-                        child: InteractiveViewer(
-                          minScale: 1.0,
-                          maxScale: 4.0,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: Image.file(
-                              File(_imageFile!.path),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: currentMode == 'currency'
-                            ? Container(
-                          color: Colors.black54,
-                          padding: EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                label,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "${confidence.toStringAsFixed(1)}% Confidence",
-                                style: TextStyle(
-                                    color: Colors.amber,
-                                    fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        )
-                            : Container(
-                          height: panelHeight,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.8),
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(20),
-                              topRight: Radius.circular(20),
-                            ),
-                          ),
-                          padding: EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              GestureDetector(
-                                onVerticalDragUpdate: (details) {
-                                  final deltaFactor = -details.delta.dy / screenHeight;
-                                  setState(() {
-                                    _panelHeightFactor = (_panelHeightFactor + deltaFactor)
-                                        .clamp(0.25, 0.75);
-                                  });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: Text(
-                                    'Detected Text ▼',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
+                              return Stack(
+                                children: [
+                                  OverflowBox(
+                                    maxWidth: screenRatio > previewRatio
+                                        ? constraints.maxWidth
+                                        : constraints.maxHeight * previewRatio,
+                                    maxHeight: screenRatio > previewRatio
+                                        ? constraints.maxWidth / previewRatio
+                                        : constraints.maxHeight,
+                                    child: CameraPreview(_cameraController!),
                                   ),
-                                ),
-                              ),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  controller: _scrollController,
-                                  physics: BouncingScrollPhysics(),
-                                  child: RichText(
-                                    text: TextSpan(
-                                      children: _textLines.asMap().entries.map((entry) {
-                                        final index = entry.key;
-                                        final line = entry.value;
-                                        final isCurrentLine = index == _currentSpokenIndex;
-
-                                        return TextSpan(
-                                          text: '$line\n',
-                                          style: TextStyle(
-                                            color: isCurrentLine ? Colors.yellow : Colors.white,
-                                            fontSize: 16,
-                                            height: 1.4,
-                                            backgroundColor: isCurrentLine ? Colors.blue.withOpacity(0.3) : Colors.transparent,
-                                          ),
-                                        );
-                                      }).toList(),
+                                  Positioned(
+                                    bottom: 20,
+                                    right: 20,
+                                    child: GestureDetector(
+                                      onTap: _toggleFlash,
+                                      child: CircleAvatar(
+                                        radius: 20,
+                                        backgroundColor:
+                                            Colors.black.withOpacity(0.5),
+                                        child: Icon(
+                                          _flashOn
+                                              ? Icons.flash_on
+                                              : Icons.flash_off,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                  Positioned(
+                                    bottom: 20,
+                                    left: 0,
+                                    right: 0,
+                                    child: Center(
+                                      child: GestureDetector(
+                                        onTap: _takePicture,
+                                        child: CircleAvatar(
+                                          radius: 30,
+                                          backgroundColor: Colors.white,
+                                          child: Icon(Icons.camera, size: 36),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          )
+                    : GestureDetector(
+                        onTap: _pickImage,
+                        child: _imageFile == null
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.photo,
+                                      size: 100, color: Colors.grey),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    'Select ${currentMode == 'currency' ? 'banknote' : 'text'} image',
+                                    style: TextStyle(
+                                        fontSize: 18, color: Colors.grey),
+                                  ),
+                                ],
+                              )
+                            : Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: InteractiveViewer(
+                                      minScale: 1.0,
+                                      maxScale: 4.0,
+                                      child: FittedBox(
+                                        fit: BoxFit.contain,
+                                        child: Image.file(
+                                          File(_imageFile!.path),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: currentMode == 'currency'
+                                        ? Container(
+                                            color: Colors.black54,
+                                            padding: EdgeInsets.all(16),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  label,
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 24,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                SizedBox(height: 8),
+                                                Text(
+                                                  "${confidence.toStringAsFixed(1)}% Confidence",
+                                                  style: TextStyle(
+                                                      color: Colors.amber,
+                                                      fontSize: 16),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : Container(
+                                            height: panelHeight,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.black.withOpacity(0.8),
+                                              borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(20),
+                                                topRight: Radius.circular(20),
+                                              ),
+                                            ),
+                                            padding: EdgeInsets.all(16),
+                                            child: Column(
+                                              children: [
+                                                GestureDetector(
+                                                  onVerticalDragUpdate:
+                                                      (details) {
+                                                    final deltaFactor =
+                                                        -details.delta.dy /
+                                                            screenHeight;
+                                                    setState(() {
+                                                      _panelHeightFactor =
+                                                          (_panelHeightFactor +
+                                                                  deltaFactor)
+                                                              .clamp(
+                                                                  0.25, 0.75);
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            vertical: 8),
+                                                    child: Text(
+                                                      'Detected Text ▼',
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: SingleChildScrollView(
+                                                    controller:
+                                                        _scrollController,
+                                                    physics:
+                                                        BouncingScrollPhysics(),
+                                                    child: RichText(
+                                                      text: TextSpan(
+                                                        children: _textLines
+                                                            .asMap()
+                                                            .entries
+                                                            .map((entry) {
+                                                          final index =
+                                                              entry.key;
+                                                          final line =
+                                                              entry.value;
+                                                          final isCurrentLine =
+                                                              index ==
+                                                                  _currentSpokenIndex;
+
+                                                          return TextSpan(
+                                                            text: '$line\n',
+                                                            style: TextStyle(
+                                                              color: isCurrentLine
+                                                                  ? Colors
+                                                                      .yellow
+                                                                  : Colors
+                                                                      .white,
+                                                              fontSize: 16,
+                                                              height: 1.4,
+                                                              backgroundColor:
+                                                                  isCurrentLine
+                                                                      ? Colors
+                                                                          .blue
+                                                                          .withOpacity(
+                                                                              0.3)
+                                                                      : Colors
+                                                                          .transparent,
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
                       ),
-                    ],
-                  ),
-                ),
               ),
             ),
             bottomNavigationBar: BottomAppBar(
-              color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+              color: settingsProvider.darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
               child: Container(
                 height: MediaQuery.of(context).size.height * 0.15,
                 child: Row(
@@ -720,14 +764,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: _selectedIndex == 0 ? Colors.lightBlue : Colors.white,
+                          color: _selectedIndex == 0
+                              ? Colors.lightBlue
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         padding: EdgeInsets.all(10),
                         child: Icon(
                           Icons.camera_alt,
                           size: 30,
-                          color: _selectedIndex == 0 ? Colors.white : Colors.black,
+                          color:
+                              _selectedIndex == 0 ? Colors.white : Colors.black,
                         ),
                       ),
                     ),
@@ -740,14 +787,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: _selectedIndex == 1 ? Colors.lightBlue : Colors.white,
+                          color: _selectedIndex == 1
+                              ? Colors.lightBlue
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         padding: EdgeInsets.all(10),
                         child: Icon(
                           Icons.photo,
                           size: 30,
-                          color: _selectedIndex == 1 ? Colors.white : Colors.black,
+                          color:
+                              _selectedIndex == 1 ? Colors.white : Colors.black,
                         ),
                       ),
                     ),
@@ -761,16 +811,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer(User? user) {
+  Widget _buildDrawer(User? user, SettingsProvider settingsProvider) {
     return Drawer(
       child: Container(
-        color: _darkMode ? Color(0xff1a0d24) : Colors.white,
+        color: settingsProvider.darkMode ? Color(0xff1a0d24) : Colors.white,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
               decoration: BoxDecoration(
-                color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+                color: settingsProvider.darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -783,14 +833,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         : null,
                     child: _profileImage == null
                         ? Text(
-                      user?.displayName?.isNotEmpty ?? false
-                          ? user!.displayName![0].toUpperCase()
-                          : 'U',
-                      style: TextStyle(
-                        fontSize: 40,
-                        color: Colors.white,
-                      ),
-                    )
+                            user?.displayName?.isNotEmpty ?? false
+                                ? user!.displayName![0].toUpperCase()
+                                : 'U',
+                            style: TextStyle(
+                              fontSize: 40,
+                              color: Colors.white,
+                            ),
+                          )
                         : null,
                   ),
                   SizedBox(height: 16),
@@ -819,9 +869,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 value: 'currency',
                 groupValue: currentMode,
                 onChanged: _handleModeChange,
-                activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
+                activeColor: settingsProvider.darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
               ),
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
             ),
             _buildDrawerItem(
               icon: Icons.text_fields,
@@ -830,18 +880,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 value: 'text',
                 groupValue: currentMode,
                 onChanged: _handleModeChange,
-                activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
+                activeColor: settingsProvider.darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
               ),
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
             ),
             Divider(
-              color: _darkMode ? Colors.grey[800] : Colors.grey[300],
+              color: settingsProvider.darkMode ? Colors.grey[800] : Colors.grey[300],
               thickness: 1,
             ),
             _buildDrawerItem(
               icon: Icons.home,
               title: 'Home',
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
               onTap: () {
                 Navigator.pop(context);
                 _speak("Home");
@@ -850,7 +900,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildDrawerItem(
               icon: Icons.account_circle,
               title: 'Profile',
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
               onTap: () async {
                 Navigator.pop(context);
                 _speak("Profile");
@@ -858,9 +908,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => ProfileScreen(
-                        darkMode: _darkMode,
-                        initialProfileImage: _profileImage, // Pass current profile image
-
+                      darkMode: settingsProvider.darkMode,
+                      initialProfileImage:
+                          _profileImage, // Pass current profile image
                     ),
                   ),
                 );
@@ -874,7 +924,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildDrawerItem(
               icon: Icons.settings,
               title: 'Settings',
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -885,8 +935,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     initialPitch: _pitch,
                     availableVoices: _availableVoices,
                     initialVoice: _currentVoice,
-                    initialDarkMode: _darkMode,
-                    onGestureStateChanged: (value) => setState(() => _gesturesEnabled = value),
+                    onGestureStateChanged: (value) =>
+                        setState(() => _gesturesEnabled = value),
                     onSpeechRateChanged: (value) {
                       setState(() => _speechRate = value);
                       flutterTts.setSpeechRate(value);
@@ -900,9 +950,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       flutterTts.setPitch(value);
                     },
                     onVoiceChanged: _setVoice,
-                    onDarkModeChanged: (value) {
-                      setState(() => _darkMode = value);
-                    },
                   ),
                 ),
               ),
@@ -910,7 +957,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildDrawerItem(
               icon: Icons.help,
               title: 'Gesture Help',
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
               onTap: () {
                 Navigator.pop(context);
                 _showGestureHelp();
@@ -919,25 +966,25 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildDrawerItem(
               icon: Icons.info,
               title: 'About',
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AboutUsScreen(darkMode: _darkMode),
+                    builder: (context) => AboutUsScreen(darkMode: settingsProvider.darkMode),
                   ),
                 );
               },
             ),
             Divider(
-              color: _darkMode ? Colors.grey[800] : Colors.grey[300],
+              color: settingsProvider.darkMode ? Colors.grey[800] : Colors.grey[300],
               thickness: 1,
             ),
             _buildDrawerItem(
               icon: Icons.logout,
               title: 'Logout',
-              darkMode: _darkMode,
+              darkMode: settingsProvider.darkMode,
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
@@ -946,14 +993,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: Text(
                       'Confirm Exit',
                       style: TextStyle(
-                        color: _darkMode ? Colors.white : Colors.black,
+                        color: settingsProvider.darkMode ? Colors.white : Colors.black,
                       ),
                     ),
-                    backgroundColor: _darkMode ? Color(0xff1a0d24) : Colors.white,
+                    backgroundColor:
+                    settingsProvider.darkMode ? Color(0xff1a0d24) : Colors.white,
                     content: Text(
                       'Are you sure you want to exit the app?',
                       style: TextStyle(
-                        color: _darkMode ? Colors.white : Colors.black,
+                        color: settingsProvider.darkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     actions: [
@@ -965,7 +1013,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           'Cancel',
                           style: TextStyle(
-                            color: _darkMode ? Colors.white : Color(0xff6a1b9a),
+                            color: settingsProvider.darkMode ? Colors.white : Color(0xff6a1b9a),
                           ),
                         ),
                       ),
@@ -976,7 +1024,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           'Exit',
                           style: TextStyle(
-                            color: _darkMode ? Colors.white : Color(0xff6a1b9a),
+                            color: settingsProvider.darkMode ? Colors.white : Color(0xff6a1b9a),
                           ),
                         ),
                       ),
@@ -1015,6 +1063,4 @@ class _HomeScreenState extends State<HomeScreen> {
       hoverColor: darkMode ? Colors.grey[800] : Colors.grey[200],
     );
   }
-
-
 }

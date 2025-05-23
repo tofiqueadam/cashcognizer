@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'settings_provider.dart';
+import 'package:provider/provider.dart';
+
 class CurrencySelectionScreen extends StatefulWidget {
-  final bool initialDarkMode;
-  final ValueChanged<bool>? onDarkModeChanged;
 
   const CurrencySelectionScreen({
     Key? key,
-    this.initialDarkMode = false,
-    this.onDarkModeChanged,
   }) : super(key: key);
 
   @override
@@ -16,20 +15,20 @@ class CurrencySelectionScreen extends StatefulWidget {
 
 class _CurrencySelectionScreenState extends State<CurrencySelectionScreen> {
   late String _selectedCurrency;
-  late bool _darkMode;
 
   @override
   void initState() {
     super.initState();
-    _selectedCurrency = "ETB";
-    _darkMode = widget.initialDarkMode;
+    _selectedCurrency = "ETB"; // Only ETB is selectable
   }
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+        backgroundColor: settingsProvider.darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
         title: Text(
           "Select Currency",
           style: TextStyle(color: Colors.white),
@@ -37,16 +36,16 @@ class _CurrencySelectionScreenState extends State<CurrencySelectionScreen> {
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: Icon(_darkMode ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(settingsProvider.darkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: () {
-              setState(() => _darkMode = !_darkMode);
-              widget.onDarkModeChanged?.call(_darkMode);
+              settingsProvider.setDarkMode(!settingsProvider.darkMode);
+              //widget.onDarkModeChanged?.call(settingsProvider.darkMode);
             },
           ),
         ],
       ),
       body: Container(
-        color: _darkMode ? Colors.black : Colors.grey[100],
+        color: settingsProvider.darkMode ? Colors.black : Colors.grey[100],
         child: Column(
           children: [
             _buildSectionHeader("Available Currencies"),
@@ -54,32 +53,32 @@ class _CurrencySelectionScreenState extends State<CurrencySelectionScreen> {
               'assets/ethiopian_flag.png',
               'Ethiopian Birr (ETB)',
               "ETB",
-              true,
+              true, // Only ETB is enabled
             ),
             _buildCurrencyTile(
               'assets/usa_flag.jpg',
               'US Dollar (USD)',
               "USD",
-              false,
+              false, // Disabled
             ),
             _buildCurrencyTile(
               'assets/uk_flag.jpg',
               'British Pound (GBP)',
               "GBP",
-              false,
+              false, // Disabled
             ),
             _buildCurrencyTile(
               'assets/eu_flag.jpg',
               'Euro (EUR)',
               "EUR",
-              false,
+              false, // Disabled
             ),
             Spacer(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff543378),
+                  backgroundColor: settingsProvider.darkMode ? Color(0xff6a1b9a) : Color(0xff543378),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -104,12 +103,14 @@ class _CurrencySelectionScreenState extends State<CurrencySelectionScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
       child: Text(
         title,
         style: TextStyle(
-          color: _darkMode ? Colors.white70 : Colors.black54,
+          color: settingsProvider.darkMode ? Colors.white70 : Colors.black54,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -118,27 +119,48 @@ class _CurrencySelectionScreenState extends State<CurrencySelectionScreen> {
   }
 
   Widget _buildCurrencyTile(String imagePath, String title, String currencyCode, bool enabled) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+
+    final bool isSelected = _selectedCurrency == currencyCode;
+    final Color textColor = settingsProvider.darkMode
+        ? (enabled ? Colors.white : Colors.white60)
+        : (enabled ? Colors.black : Colors.black54);
+
+    final Color cardColor = settingsProvider.darkMode
+        ? (enabled ? Color(0xff1a0d24) : Color(0xff0d0612))
+        : (enabled ? Colors.grey[200]! : Colors.grey[100]!);
+
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: _darkMode ? Color(0xff1a0d24) : Colors.grey[200],
+      color: cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
-        leading: Image.asset(imagePath, width: 40),
+        leading: Opacity(
+          opacity: enabled ? 1.0 : 0.6,
+          child: Image.asset(imagePath, width: 40),
+        ),
         title: Text(
           title,
-          style: TextStyle(color: _darkMode ? Colors.white : Colors.black),
+          style: TextStyle(
+            color: textColor,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
         trailing: Radio<String>(
           value: currencyCode,
           groupValue: _selectedCurrency,
-          onChanged: enabled
-              ? (value) {
+          onChanged: enabled ? (value) {
             setState(() {
               _selectedCurrency = value!;
             });
-          }
-              : null,
+          } : null,
           activeColor: Color(0xff6a1b9a),
+          fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+            if (!enabled) {
+              return settingsProvider.darkMode ? Colors.grey[700]! : Colors.grey[400]!;
+            }
+            return Color(0xff6a1b9a);
+          }),
         ),
       ),
     );
