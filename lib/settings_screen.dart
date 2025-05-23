@@ -21,6 +21,7 @@ class SettingsScreen extends StatefulWidget {
   final ValueChanged<bool>? onHighContrastChanged;
   final ValueChanged<String>? onLanguageChanged;
 
+
   const SettingsScreen({
     Key? key,
     required this.initialGestureState,
@@ -59,6 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late bool _highContrast;
   late String _language;
   late bool _largeText;
+  late bool _screenReaderEnabled;
 
   @override
   void initState() {
@@ -73,6 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _highContrast = widget.initialHighContrast;
     _language = widget.initialLanguage;
     _largeText = false;
+    _screenReaderEnabled = true; // Default to enabled
   }
 
   @override
@@ -120,6 +123,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildScreenReaderToggle() {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: _darkMode ? Color(0xff1a0d24) : Colors.grey[200],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: SwitchListTile(
+        title: Text(
+          "Screen Reader",
+          style: TextStyle(
+            color: _darkMode ? Colors.white : Colors.black,
+            fontSize: _largeText ? 18 : 16,
+          ),
+        ),
+        value: _screenReaderEnabled,
+        onChanged: (value) {
+          setState(() => _screenReaderEnabled = value);
+        },
+        activeColor: Color(0xff6a1b9a),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -133,6 +158,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+
 
   Widget _buildDarkModeToggle() {
     return Card(

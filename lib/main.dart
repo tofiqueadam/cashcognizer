@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'home_screen.dart';
 
+
 import 'welcome_screen.dart';
 
 Future<void> main() async {
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      
+
       debugShowCheckedModeBanner: false,
       title: 'Flutter Camera App',
 
