@@ -18,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -29,6 +30,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+
+        // Update user profile with display name
+        await userCredential.user!.updateProfile(displayName: _nameController.text.trim());
+        await userCredential.user!.reload(); // Refresh user data
+
+        // Get the updated user
+        User? updatedUser = _auth.currentUser;
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -36,7 +45,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed: ${e.toString()}')),
+        );
       }
     }
   }
@@ -92,31 +103,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 45),
-                        // First text field
-                        const TextField(
-                          decoration: InputDecoration(
-                            hintText: "Name",
+                        // Name field
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            hintText: "Full Name",
                             prefixIcon: Icon(Icons.person, color: Color(0xff387780)),
-                            suffixIcon: Icon(Icons.check, color: Colors.grey),
                           ),
-                        ),// Add spacing between fields
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your name';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        // Email field
                         TextFormField(
                           controller: _emailController,
                           decoration: const InputDecoration(
-                            hintText: "Gmail",
-                            prefixIcon: Icon(Icons.mail, color: Color(0xff387780)),
-                            suffixIcon: Icon(Icons.check, color: Colors.grey),
+                            hintText: "Email",
+                            prefixIcon: Icon(Icons.email, color: Color(0xff387780)),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
                             }
+                            if (!value.contains('@')) {
+                              return 'Please enter a valid email';
+                            }
                             return null;
                           },
                         ),
+                        const SizedBox(height: 20),
+                        // Password field
                         TextFormField(
                           controller: _passwordController,
-                          obscureText: !_isPasswordVisible, // Toggle visibility
+                          obscureText: !_isPasswordVisible,
                           decoration: InputDecoration(
                             hintText: "Password",
                             prefixIcon: const Icon(
@@ -139,12 +162,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your password';
                             }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
                             return null;
                           },
                         ),
+                        const SizedBox(height: 20),
+                        // Confirm Password field
                         TextFormField(
                           controller: _confirmPasswordController,
-                          obscureText: !_isConfirmPasswordVisible, // Toggle visibility
+                          obscureText: !_isConfirmPasswordVisible,
                           decoration: InputDecoration(
                             hintText: "Confirm Password",
                             prefixIcon: const Icon(
@@ -164,19 +192,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           validator: (value) {
-                            if (value == null || value != _passwordController.text) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please confirm your password';
+                            }
+                            if (value != _passwordController.text) {
                               return 'Passwords do not match';
                             }
                             return null;
                           },
                         ),
-                        const SizedBox(height: 80), // Add space before the button
+                        const SizedBox(height: 80),
+                        // Sign Up Button
                         Center(
                           child: GestureDetector(
                             onTap: _register,
                             child: Container(
                               height: 55,
-                              width: 300, // Fixed width for the button
+                              width: 300,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(30),
                                 gradient: const LinearGradient(
@@ -199,7 +231,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 110), // Add space between button and "Already have an account"
+                        const SizedBox(height: 110),
+                        // Already have an account
                         Align(
                           alignment: Alignment.bottomRight,
                           child: Column(
@@ -244,5 +277,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 }

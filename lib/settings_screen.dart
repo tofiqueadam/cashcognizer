@@ -95,20 +95,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildDarkModeToggle(),
             _buildLargeTextToggle(),
 
-            _buildSectionHeader("Accessibility"),
-            _buildGestureToggle(),
-            _buildVoiceGuidanceToggle(),
-            _buildHighContrastToggle(),
-            _buildLanguageSelection(),
-
             _buildSectionHeader("Voice Settings"),
             _buildVoiceSelection(),
             _buildSpeechRateSlider(),
             _buildVolumeSlider(),
             _buildPitchSlider(),
 
-            _buildSectionHeader("Accessibility Settings"),
+            _buildSectionHeader("Accessibility"),
+            _buildGestureToggle(),
+            _buildVoiceGuidanceToggle(),
+            _buildHighContrastToggle(),
             _buildAccessibilityOptions(),
+
+            _buildLanguageSelection(),
+
+
+
 
             _buildSectionHeader("Other Preferences"),
             _buildResetSettingsButton(),
@@ -245,7 +247,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+  Widget _buildAccessibilityOptions() {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: _darkMode ? Color(0xff1a0d24) : Colors.grey[200],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Column(
+        children: [
+          SwitchListTile(
+            title: Text(
+              "Screen Reader",
+              style: TextStyle(
+                color: _darkMode ? Colors.white : Colors.black,
+                fontSize: _largeText ? 18 : 16,
+              ),
+            ),
+            value: true,
+            onChanged: (value) {},
+            activeColor: Color(0xff6a1b9a),
+          ),
 
+        ],
+      ),
+    );
+  }
   Widget _buildLanguageSelection() {
     final languages = ["English", "Amharic", "Oromo", "Tigrinya", "Other"];
 
@@ -455,55 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAccessibilityOptions() {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: _darkMode ? Color(0xff1a0d24) : Colors.grey[200],
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Column(
-        children: [
-          SwitchListTile(
-            title: Text(
-              "Screen Reader",
-              style: TextStyle(
-                color: _darkMode ? Colors.white : Colors.black,
-                fontSize: _largeText ? 18 : 16,
-              ),
-            ),
-            value: true,
-            onChanged: (value) {},
-            activeColor: Color(0xff6a1b9a),
-          ),
-          Divider(height: 1, color: _darkMode ? Colors.grey[800] : Colors.grey[400]),
-          SwitchListTile(
-            title: Text(
-              "Bold Text",
-              style: TextStyle(
-                color: _darkMode ? Colors.white : Colors.black,
-                fontSize: _largeText ? 18 : 16,
-              ),
-            ),
-            value: false,
-            onChanged: (value) {},
-            activeColor: Color(0xff6a1b9a),
-          ),
-          Divider(height: 1, color: _darkMode ? Colors.grey[800] : Colors.grey[400]),
-          SwitchListTile(
-            title: Text(
-              "Reduce Motion",
-              style: TextStyle(
-                color: _darkMode ? Colors.white : Colors.black,
-                fontSize: _largeText ? 18 : 16,
-              ),
-            ),
-            value: false,
-            onChanged: (value) {},
-            activeColor: Color(0xff6a1b9a),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildResetSettingsButton() {
     return Card(

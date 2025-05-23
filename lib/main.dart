@@ -1,3 +1,4 @@
+import 'package:CashCognize/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'inter',
         useMaterial3: true,
       ),
-      home: HomeScreen(cameras: cameras),
+      home: RegisterScreen(cameras: cameras),
     );
   }
 }

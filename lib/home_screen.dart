@@ -16,6 +16,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import 'profile_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -28,6 +29,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   File? _imageFile;
+  File? _profileImage;
   String label = 'Detecting...';
   double confidence = 0.0;
   int _selectedIndex = 0;
@@ -44,47 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _lastTap;
   bool _isPaused = false;
   bool _darkMode = false;
-
-
-  // Text highlighting variables
   int _currentSpokenIndex = 0;
   List<String> _textLines = [];
   final ScrollController _scrollController = ScrollController();
   String _currentSpokenText = '';
   bool _isSpeaking = false;
-
   double _speechRate = 0.5;
   double _volume = 1.0;
   double _pitch = 1.0;
-
   List<Map<String, String>> _availableVoices = [];
   String _currentVoice = 'default';
-
-
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    Widget? trailing,
-    bool darkMode = false,
-    VoidCallback? onTap,
-  }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: darkMode ? Colors.white : Colors.black,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: darkMode ? Colors.white : Colors.black,
-        ),
-      ),
-      trailing: trailing,
-      onTap: onTap,
-      tileColor: darkMode ? Colors.transparent : Colors.white,
-      hoverColor: darkMode ? Colors.grey[800] : Colors.grey[200],
-    );
-  }
   final List<String> validCurrencies = [
     '5 Birr',
     '10 Birr',
@@ -92,6 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
     '100 Birr',
     '200 Birr'
   ];
+
+
 
   @override
   void initState() {
@@ -106,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _initializeCamera(widget.cameras.first);
     }
   }
+
 
   Future<void> _initTts() async {
     await flutterTts.awaitSpeakCompletion(true);
@@ -173,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     setState(() {});
   }
-
 
 
   Future<void> classifyImage(File image) async {
@@ -481,535 +454,567 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
-  void dispose() {
-    Tflite.close();
-    textRecognizer.close();
-    flutterTts.stop();
-    _cameraController?.dispose();
-    _scrollController.dispose();
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       systemNavigationBarColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
     ));
 
-    final screenHeight = MediaQuery.of(context).size.height;
-    final panelHeight = screenHeight * _panelHeightFactor;
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        final user = authSnapshot.data;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final panelHeight = screenHeight * _panelHeightFactor;
 
-    return _buildGestureDetector(
-      Scaffold(
-        appBar: AppBar(
-          backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
-          title: Text(
-            currentMode == 'currency'
-                ? 'Currency Detection'
-                : 'Text Recognition',
-            style: TextStyle(color: Colors.white),
-          ),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu, color: Colors.white),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-          ),
-          actions: [
-            if (_isSpeaking && currentMode == 'text')
-              IconButton(
-                icon: Icon(Icons.stop, color: Colors.white),
-                onPressed: () async {
-                  await flutterTts.stop();
-                  setState(() {
-                    _isSpeaking = false;
-                    _currentSpokenText = '';
-                    _currentSpokenIndex = -1;
-                  });
-                },
+        return _buildGestureDetector(
+          Scaffold(
+            appBar: AppBar(
+              backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+              title: Text(
+                currentMode == 'currency'
+                    ? 'Currency Detection'
+                    : 'Text Recognition',
+                style: TextStyle(color: Colors.white),
               ),
-            IconButton(
-              icon: currentMode == "text"
-                  ? Icon(Icons.language, color: Colors.white)
-                  : Image.asset('assets/ethiopian_flag.png', width: 24, height: 24),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => currentMode == "text"
-                      ? LanguageSelectionScreen()
-                      : CurrencySelectionScreen(),
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: Icon(Icons.menu, color: Colors.white),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
-            ),
-            IconButton(
-              icon: Icon(Icons.info_outline, color: Colors.white),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AboutScreen()),
-              ),
-            ),
-          ],
-        ),
-        body: Container(
-          color: _darkMode ? Colors.black : Colors.grey[100],
-          child: Center(
-            child:_selectedIndex == 0
-                ? (_cameraController == null || !_cameraController!.value.isInitialized)
-                ? Center(child: CircularProgressIndicator())
-                : LayoutBuilder(
-              builder: (context, constraints) {
-                final previewSize = _cameraController!.value.previewSize!;
-                final screenRatio = constraints.maxWidth / constraints.maxHeight;
-                final previewRatio = previewSize.height / previewSize.width;
-
-                return Stack(
-                  children: [
-                    // Cropping vertically by expanding width and cropping extra height
-                    OverflowBox(
-                      maxWidth: screenRatio > previewRatio
-                          ? constraints.maxWidth
-                          : constraints.maxHeight * previewRatio,
-                      maxHeight: screenRatio > previewRatio
-                          ? constraints.maxWidth / previewRatio
-                          : constraints.maxHeight,
-                      child: CameraPreview(_cameraController!),
-                    ),
-
-                    // Flash button
-                    Positioned(
-                      bottom: 20,
-                      right: 20,
-                      child: GestureDetector(
-                        onTap: _toggleFlash,
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.black.withOpacity(0.5),
-                          child: Icon(
-                            _flashOn ? Icons.flash_on : Icons.flash_off,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Capture button
-                    Positioned(
-                      bottom: 20,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: GestureDetector(
-                          onTap: _takePicture,
-                          child: CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.camera, size: 36),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            )
-
-                : GestureDetector(
-              onTap: _pickImage,
-              child: _imageFile == null
-                  ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.photo, size: 100, color: Colors.grey),
-                  SizedBox(height: 20),
-                  Text(
-                    'Select ${currentMode == 'currency' ? 'banknote' : 'text'} image',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+              actions: [
+                if (_isSpeaking && currentMode == 'text')
+                  IconButton(
+                    icon: Icon(Icons.stop, color: Colors.white),
+                    onPressed: () async {
+                      await flutterTts.stop();
+                      setState(() {
+                        _isSpeaking = false;
+                        _currentSpokenText = '';
+                        _currentSpokenIndex = -1;
+                      });
+                    },
                   ),
-                ],
-              )
-                  : Stack(
-                children: [
-                  Positioned.fill(
-                    child: InteractiveViewer(
-                      minScale: 1.0,
-                      maxScale: 4.0,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        child: Image.file(
-                          File(_imageFile!.path),
-                        ),
-                      ),
+                IconButton(
+                  icon: currentMode == "text"
+                      ? Icon(Icons.language, color: Colors.white)
+                      : Image.asset('assets/ethiopian_flag.png', width: 24, height: 24),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => currentMode == "text"
+                          ? LanguageSelectionScreen()
+                          : CurrencySelectionScreen(),
                     ),
                   ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: currentMode == 'currency'
-                        ? Container(
-                      color: Colors.black54,
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            label,
-                            style: TextStyle(
+                ),
+                IconButton(
+                  icon: Icon(Icons.info_outline, color: Colors.white),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AboutScreen()),
+                  ),
+                ),
+              ],
+            ),
+            drawer: _buildDrawer(user),
+            body: Container(
+              color: _darkMode ? Colors.black : Colors.grey[100],
+              child: Center(
+                child: _selectedIndex == 0
+                    ? (_cameraController == null || !_cameraController!.value.isInitialized)
+                    ? Center(child: CircularProgressIndicator())
+                    : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final previewSize = _cameraController!.value.previewSize!;
+                    final screenRatio = constraints.maxWidth / constraints.maxHeight;
+                    final previewRatio = previewSize.height / previewSize.width;
+
+                    return Stack(
+                      children: [
+                        OverflowBox(
+                          maxWidth: screenRatio > previewRatio
+                              ? constraints.maxWidth
+                              : constraints.maxHeight * previewRatio,
+                          maxHeight: screenRatio > previewRatio
+                              ? constraints.maxWidth / previewRatio
+                              : constraints.maxHeight,
+                          child: CameraPreview(_cameraController!),
+                        ),
+                        Positioned(
+                          bottom: 20,
+                          right: 20,
+                          child: GestureDetector(
+                            onTap: _toggleFlash,
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.black.withOpacity(0.5),
+                              child: Icon(
+                                _flashOn ? Icons.flash_on : Icons.flash_off,
                                 color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold
+                                size: 24,
+                              ),
                             ),
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                            "${confidence.toStringAsFixed(1)}% Confidence",
-                            style: TextStyle(
-                                color: Colors.amber,
-                                fontSize: 16
+                        ),
+                        Positioned(
+                          bottom: 20,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: _takePicture,
+                              child: CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.white,
+                                child: Icon(Icons.camera, size: 36),
+                              ),
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                    );
+                  },
+                )
+                    : GestureDetector(
+                  onTap: _pickImage,
+                  child: _imageFile == null
+                      ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.photo, size: 100, color: Colors.grey),
+                      SizedBox(height: 20),
+                      Text(
+                        'Select ${currentMode == 'currency' ? 'banknote' : 'text'} image',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
-                    )
-                        : Container(
-                      height: panelHeight,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.8),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
+                    ],
+                  )
+                      : Stack(
+                    children: [
+                      Positioned.fill(
+                        child: InteractiveViewer(
+                          minScale: 1.0,
+                          maxScale: 4.0,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: Image.file(
+                              File(_imageFile!.path),
+                            ),
+                          ),
                         ),
                       ),
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          GestureDetector(
-                            onVerticalDragUpdate: (details) {
-                              final deltaFactor = -details.delta.dy / screenHeight;
-                              setState(() {
-                                _panelHeightFactor = (_panelHeightFactor + deltaFactor)
-                                    .clamp(0.25, 0.75);
-                              });
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                'Detected Text ▼',
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: currentMode == 'currency'
+                            ? Container(
+                          color: Colors.black54,
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                label,
                                 style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 18,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.bold),
                               ),
+                              SizedBox(height: 8),
+                              Text(
+                                "${confidence.toStringAsFixed(1)}% Confidence",
+                                style: TextStyle(
+                                    color: Colors.amber,
+                                    fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        )
+                            : Container(
+                          height: panelHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.8),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
                             ),
                           ),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              controller: _scrollController,
-                              physics: BouncingScrollPhysics(),
-                              child: RichText(
-                                text: TextSpan(
-                                  children: _textLines.asMap().entries.map((entry) {
-                                    final index = entry.key;
-                                    final line = entry.value;
-                                    final isCurrentLine = index == _currentSpokenIndex;
-
-                                    return TextSpan(
-                                      text: '$line\n',
-                                      style: TextStyle(
-                                        color: isCurrentLine ? Colors.yellow : Colors.white,
-                                        fontSize: 16,
-                                        height: 1.4,
-                                        backgroundColor: isCurrentLine ? Colors.blue.withOpacity(0.3) : Colors.transparent,
-                                      ),
-                                    );
-                                  }).toList(),
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onVerticalDragUpdate: (details) {
+                                  final deltaFactor = -details.delta.dy / screenHeight;
+                                  setState(() {
+                                    _panelHeightFactor = (_panelHeightFactor + deltaFactor)
+                                        .clamp(0.25, 0.75);
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: Text(
+                                    'Detected Text ▼',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ),
                               ),
-                            ),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  controller: _scrollController,
+                                  physics: BouncingScrollPhysics(),
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: _textLines.asMap().entries.map((entry) {
+                                        final index = entry.key;
+                                        final line = entry.value;
+                                        final isCurrentLine = index == _currentSpokenIndex;
+
+                                        return TextSpan(
+                                          text: '$line\n',
+                                          style: TextStyle(
+                                            color: isCurrentLine ? Colors.yellow : Colors.white,
+                                            fontSize: 16,
+                                            height: 1.4,
+                                            backgroundColor: isCurrentLine ? Colors.blue.withOpacity(0.3) : Colors.transparent,
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        drawer: Drawer(
-          child: Container(
-            color: _darkMode ? Color(0xff1a0d24) : Colors.white,
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        child: Text(
-                          'T',
-                          style: TextStyle(
-                            fontSize: 40,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'tofique',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'tofique@gmail.com',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
                         ),
                       ),
                     ],
                   ),
                 ),
-                _buildDrawerItem(
-                  icon: Icons.attach_money,
-                  title: 'Currency',
-                  trailing: Radio<String>(
-                    value: 'currency',
-                    groupValue: currentMode,
-                    onChanged: _handleModeChange,
-                    activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
-                  ),
-                  darkMode: _darkMode,
-                ),
-                _buildDrawerItem(
-                  icon: Icons.text_fields,
-                  title: 'Text',
-                  trailing: Radio<String>(
-                    value: 'text',
-                    groupValue: currentMode,
-                    onChanged: _handleModeChange,
-                    activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
-                  ),
-                  darkMode: _darkMode,
-                ),
-                Divider(
-                  color: _darkMode ? Colors.grey[800] : Colors.grey[300],
-                  thickness: 1,
-                ),
-                _buildDrawerItem(
-                  icon: Icons.home,
-                  title: 'Home',
-                  darkMode: _darkMode,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _speak("Home");
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.account_circle,
-                  title: 'Profile',
-                  darkMode: _darkMode,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _speak("Profile");
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfileScreen(darkMode: _darkMode),
-                      ),
-                    );
-
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.settings,
-                  title: 'Settings',
-                  darkMode: _darkMode,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SettingsScreen(
-                        initialGestureState: _gesturesEnabled,
-                        initialSpeechRate: _speechRate,
-                        initialVolume: _volume,
-                        initialPitch: _pitch,
-                        availableVoices: _availableVoices,
-                        initialVoice: _currentVoice,
-                        initialDarkMode: _darkMode,
-                        onGestureStateChanged: (value) => setState(() => _gesturesEnabled = value),
-                        onSpeechRateChanged: (value) {
-                          setState(() => _speechRate = value);
-                          flutterTts.setSpeechRate(value);
-                        },
-                        onVolumeChanged: (value) {
-                          setState(() => _volume = value);
-                          flutterTts.setVolume(value);
-                        },
-                        onPitchChanged: (value) {
-                          setState(() => _pitch = value);
-                          flutterTts.setPitch(value);
-                        },
-                        onVoiceChanged: _setVoice,
-                        onDarkModeChanged: (value) {
-                          setState(() => _darkMode = value);
-                        },
+              ),
+            ),
+            bottomNavigationBar: BottomAppBar(
+              color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.15,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        flutterTts.stop();
+                        _resetState();
+                        setState(() {
+                          _selectedIndex = 0;
+                          if (widget.cameras.isNotEmpty &&
+                              (_cameraController == null ||
+                                  !_cameraController!.value.isInitialized)) {
+                            _initializeCamera(widget.cameras.first);
+                          }
+                        });
+                        _speak("Camera mode");
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _selectedIndex == 0 ? Colors.lightBlue : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 30,
+                          color: _selectedIndex == 0 ? Colors.white : Colors.black,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                _buildDrawerItem(
-                  icon: Icons.help,
-                  title: 'Gesture Help',
-                  darkMode: _darkMode,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showGestureHelp();
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.info,
-                  title: 'About',
-                  darkMode: _darkMode,
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AboutUsScreen(darkMode: _darkMode),
-                      ),
-                    );
-                  },
-                ),
-                Divider(
-                  color: _darkMode ? Colors.grey[800] : Colors.grey[300],
-                  thickness: 1,
-                ),
-                _buildDrawerItem(
-                  icon: Icons.logout,
-                  title: 'Logout',
-                  darkMode: _darkMode,
-                  onTap: () {
-                    Navigator.pop(context);
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(
-                          'Confirm Exit',
-                          style: TextStyle(
-                            color: _darkMode ? Colors.white : Colors.black,
-                          ),
+                    GestureDetector(
+                      onTap: () {
+                        flutterTts.stop();
+                        _resetState();
+                        setState(() => _selectedIndex = 1);
+                        _speak("Gallery mode");
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _selectedIndex == 1 ? Colors.lightBlue : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        backgroundColor: _darkMode ? Color(0xff1a0d24) : Colors.white,
-                        content: Text(
-                          'Are you sure you want to exit the app?',
-                          style: TextStyle(
-                            color: _darkMode ? Colors.white : Colors.black,
-                          ),
+                        padding: EdgeInsets.all(10),
+                        child: Icon(
+                          Icons.photo,
+                          size: 30,
+                          color: _selectedIndex == 1 ? Colors.white : Colors.black,
                         ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _speak("Cancelled");
-                            },
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: _darkMode ? Colors.white : Color(0xff6a1b9a),
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              exit(0);
-                            },
-                            child: Text(
-                              'Exit',
-                              style: TextStyle(
-                                color: _darkMode ? Colors.white : Color(0xff6a1b9a),
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-        bottomNavigationBar: BottomAppBar(
-          color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.15,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    flutterTts.stop();
-                    _resetState();
-                    setState(() {
-                      _selectedIndex = 0;
+        );
+      },
+    );
+  }
 
-                      if (widget.cameras.isNotEmpty &&
-                          (_cameraController == null ||
-                              !_cameraController!.value.isInitialized)) {
-                        _initializeCamera(widget.cameras.first);
-                      }
-                    });
-                    _speak("Camera mode");
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _selectedIndex == 0 ? Colors.lightBlue : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: EdgeInsets.all(10),
-                    child: Icon(
-                      Icons.camera_alt,
-                      size: 30,
-                      color: _selectedIndex == 0 ? Colors.white : Colors.black,
+  Widget _buildDrawer(User? user) {
+    return Drawer(
+      child: Container(
+        color: _darkMode ? Color(0xff1a0d24) : Colors.white,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white.withOpacity(0.3),
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : null,
+                    child: _profileImage == null
+                        ? Text(
+                      user?.displayName?.isNotEmpty ?? false
+                          ? user!.displayName![0].toUpperCase()
+                          : 'U',
+                      style: TextStyle(
+                        fontSize: 40,
+                        color: Colors.white,
+                      ),
+                    )
+                        : null,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    user?.displayName ?? 'User',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    flutterTts.stop();
-                    _resetState();
-                    setState(() => _selectedIndex = 1);
-                    _speak("Gallery mode");
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _selectedIndex == 1 ? Colors.lightBlue : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: EdgeInsets.all(10),
-                    child: Icon(
-                      Icons.photo,
-                      size: 30,
-                      color: _selectedIndex == 1 ? Colors.white : Colors.black,
+                  Text(
+                    user?.email ?? 'No email',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            _buildDrawerItem(
+              icon: Icons.attach_money,
+              title: 'Currency',
+              trailing: Radio<String>(
+                value: 'currency',
+                groupValue: currentMode,
+                onChanged: _handleModeChange,
+                activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
+              ),
+              darkMode: _darkMode,
+            ),
+            _buildDrawerItem(
+              icon: Icons.text_fields,
+              title: 'Text',
+              trailing: Radio<String>(
+                value: 'text',
+                groupValue: currentMode,
+                onChanged: _handleModeChange,
+                activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
+              ),
+              darkMode: _darkMode,
+            ),
+            Divider(
+              color: _darkMode ? Colors.grey[800] : Colors.grey[300],
+              thickness: 1,
+            ),
+            _buildDrawerItem(
+              icon: Icons.home,
+              title: 'Home',
+              darkMode: _darkMode,
+              onTap: () {
+                Navigator.pop(context);
+                _speak("Home");
+              },
+            ),
+            _buildDrawerItem(
+              icon: Icons.account_circle,
+              title: 'Profile',
+              darkMode: _darkMode,
+              onTap: () async {
+                Navigator.pop(context);
+                _speak("Profile");
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileScreen(
+                        darkMode: _darkMode,
+                        initialProfileImage: _profileImage, // Pass current profile image
+
+                    ),
+                  ),
+                );
+                if (result is File) {
+                  setState(() {
+                    _profileImage = result;
+                  });
+                }
+              },
+            ),
+            _buildDrawerItem(
+              icon: Icons.settings,
+              title: 'Settings',
+              darkMode: _darkMode,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(
+                    initialGestureState: _gesturesEnabled,
+                    initialSpeechRate: _speechRate,
+                    initialVolume: _volume,
+                    initialPitch: _pitch,
+                    availableVoices: _availableVoices,
+                    initialVoice: _currentVoice,
+                    initialDarkMode: _darkMode,
+                    onGestureStateChanged: (value) => setState(() => _gesturesEnabled = value),
+                    onSpeechRateChanged: (value) {
+                      setState(() => _speechRate = value);
+                      flutterTts.setSpeechRate(value);
+                    },
+                    onVolumeChanged: (value) {
+                      setState(() => _volume = value);
+                      flutterTts.setVolume(value);
+                    },
+                    onPitchChanged: (value) {
+                      setState(() => _pitch = value);
+                      flutterTts.setPitch(value);
+                    },
+                    onVoiceChanged: _setVoice,
+                    onDarkModeChanged: (value) {
+                      setState(() => _darkMode = value);
+                    },
+                  ),
+                ),
+              ),
+            ),
+            _buildDrawerItem(
+              icon: Icons.help,
+              title: 'Gesture Help',
+              darkMode: _darkMode,
+              onTap: () {
+                Navigator.pop(context);
+                _showGestureHelp();
+              },
+            ),
+            _buildDrawerItem(
+              icon: Icons.info,
+              title: 'About',
+              darkMode: _darkMode,
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AboutUsScreen(darkMode: _darkMode),
+                  ),
+                );
+              },
+            ),
+            Divider(
+              color: _darkMode ? Colors.grey[800] : Colors.grey[300],
+              thickness: 1,
+            ),
+            _buildDrawerItem(
+              icon: Icons.logout,
+              title: 'Logout',
+              darkMode: _darkMode,
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(
+                      'Confirm Exit',
+                      style: TextStyle(
+                        color: _darkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    backgroundColor: _darkMode ? Color(0xff1a0d24) : Colors.white,
+                    content: Text(
+                      'Are you sure you want to exit the app?',
+                      style: TextStyle(
+                        color: _darkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _speak("Cancelled");
+                        },
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: _darkMode ? Colors.white : Color(0xff6a1b9a),
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          exit(0);
+                        },
+                        child: Text(
+                          'Exit',
+                          style: TextStyle(
+                            color: _darkMode ? Colors.white : Color(0xff6a1b9a),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    Widget? trailing,
+    bool darkMode = false,
+    VoidCallback? onTap,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: darkMode ? Colors.white : Colors.black,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: darkMode ? Colors.white : Colors.black,
+        ),
+      ),
+      trailing: trailing,
+      onTap: onTap,
+      tileColor: darkMode ? Colors.transparent : Colors.white,
+      hoverColor: darkMode ? Colors.grey[800] : Colors.grey[200],
+    );
+  }
+
+
 }
