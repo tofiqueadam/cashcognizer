@@ -15,6 +15,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -60,7 +61,30 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentVoice = 'default';
 
 
-
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    Widget? trailing,
+    bool darkMode = false,
+    VoidCallback? onTap,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: darkMode ? Colors.white : Colors.black,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: darkMode ? Colors.white : Colors.black,
+        ),
+      ),
+      trailing: trailing,
+      onTap: onTap,
+      tileColor: darkMode ? Colors.transparent : Colors.white,
+      hoverColor: darkMode ? Colors.grey[800] : Colors.grey[200],
+    );
+  }
   final List<String> validCurrencies = [
     '5 Birr',
     '10 Birr',
@@ -470,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: Color(0xff281537),
+      systemNavigationBarColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
     ));
 
     final screenHeight = MediaQuery.of(context).size.height;
@@ -479,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return _buildGestureDetector(
       Scaffold(
         appBar: AppBar(
-          backgroundColor: Color(0xff281537),
+          backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
           title: Text(
             currentMode == 'currency'
                 ? 'Currency Detection'
@@ -528,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         body: Container(
-          color: Colors.black,
+          color: _darkMode ? Colors.black : Colors.grey[100],
           child: Center(
             child:_selectedIndex == 0
                 ? (_cameraController == null || !_cameraController!.value.isInitialized)
@@ -715,157 +739,219 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xff387780), Color(0xff281537)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+          child: Container(
+            color: _darkMode ? Color(0xff1a0d24) : Colors.white,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white.withOpacity(0.3),
-                      child: Text('T',
-                          style: TextStyle(fontSize: 40, color: Colors.white)),
-                    ),
-                    SizedBox(height: 16),
-                    Text('tofique',
-                        style: TextStyle(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white.withOpacity(0.3),
+                        child: Text(
+                          'T',
+                          style: TextStyle(
+                            fontSize: 40,
                             color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold)),
-                    Text('tofique@gmail.com',
-                        style: TextStyle(color: Colors.white, fontSize: 16)),
-                  ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'tofique',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'tofique@gmail.com',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              ListTile(
-                leading: Icon(Icons.attach_money),
-                title: Text('Currency'),
-                trailing: Radio<String>(
-                  value: 'currency',
-                  groupValue: currentMode,
-                  onChanged: _handleModeChange,
+                _buildDrawerItem(
+                  icon: Icons.attach_money,
+                  title: 'Currency',
+                  trailing: Radio<String>(
+                    value: 'currency',
+                    groupValue: currentMode,
+                    onChanged: _handleModeChange,
+                    activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
+                  ),
+                  darkMode: _darkMode,
                 ),
-              ),
-              ListTile(
-                leading: Icon(Icons.text_fields),
-                title: Text('Text'),
-                trailing: Radio<String>(
-                  value: 'text',
-                  groupValue: currentMode,
-                  onChanged: _handleModeChange,
+                _buildDrawerItem(
+                  icon: Icons.text_fields,
+                  title: 'Text',
+                  trailing: Radio<String>(
+                    value: 'text',
+                    groupValue: currentMode,
+                    onChanged: _handleModeChange,
+                    activeColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff281537),
+                  ),
+                  darkMode: _darkMode,
                 ),
-              ),
-              Divider(),
-              ListTile(
-                leading: Icon(Icons.home),
-                title: Text('Home'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _speak("Home");
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.account_circle),
-                title: Text('Profile'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _speak("Profile");
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SettingsScreen(
-                      initialGestureState: _gesturesEnabled,
-                      initialSpeechRate: _speechRate,
-                      initialVolume: _volume,
-                      initialPitch: _pitch,
-                      availableVoices: _availableVoices,
-                      initialVoice: _currentVoice,
-                      onGestureStateChanged: (value) => setState(() => _gesturesEnabled = value),
-                      onSpeechRateChanged: (value) {
-                        setState(() => _speechRate = value);
-                        flutterTts.setSpeechRate(value);
-                      },
-                      onVolumeChanged: (value) {
-                        setState(() => _volume = value);
-                        flutterTts.setVolume(value);
-                      },
-                      onPitchChanged: (value) {
-                        setState(() => _pitch = value);
-                        flutterTts.setPitch(value);
-                      },
-                      onVoiceChanged: _setVoice,
+                Divider(
+                  color: _darkMode ? Colors.grey[800] : Colors.grey[300],
+                  thickness: 1,
+                ),
+                _buildDrawerItem(
+                  icon: Icons.home,
+                  title: 'Home',
+                  darkMode: _darkMode,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _speak("Home");
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.account_circle,
+                  title: 'Profile',
+                  darkMode: _darkMode,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _speak("Profile");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(darkMode: _darkMode),
+                      ),
+                    );
 
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings,
+                  title: 'Settings',
+                  darkMode: _darkMode,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SettingsScreen(
+                        initialGestureState: _gesturesEnabled,
+                        initialSpeechRate: _speechRate,
+                        initialVolume: _volume,
+                        initialPitch: _pitch,
+                        availableVoices: _availableVoices,
+                        initialVoice: _currentVoice,
+                        initialDarkMode: _darkMode,
+                        onGestureStateChanged: (value) => setState(() => _gesturesEnabled = value),
+                        onSpeechRateChanged: (value) {
+                          setState(() => _speechRate = value);
+                          flutterTts.setSpeechRate(value);
+                        },
+                        onVolumeChanged: (value) {
+                          setState(() => _volume = value);
+                          flutterTts.setVolume(value);
+                        },
+                        onPitchChanged: (value) {
+                          setState(() => _pitch = value);
+                          flutterTts.setPitch(value);
+                        },
+                        onVoiceChanged: _setVoice,
+                        onDarkModeChanged: (value) {
+                          setState(() => _darkMode = value);
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
-              ListTile(
-                leading: Icon(Icons.help),
-                title: Text('Gesture Help'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showGestureHelp();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.info),
-                title: Text('About'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
+                _buildDrawerItem(
+                  icon: Icons.help,
+                  title: 'Gesture Help',
+                  darkMode: _darkMode,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showGestureHelp();
+                  },
+                ),
+                _buildDrawerItem(
+                  icon: Icons.info,
+                  title: 'About',
+                  darkMode: _darkMode,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => AboutUsScreen())
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.logout),
-                title: Text('Logout'),
-                onTap: () {
-                  Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Confirm Exit'),
-                      content: Text('Are you sure you want to exit the app?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _speak("Cancelled");
-                          },
-                          child: Text('Cancel'),
+                      MaterialPageRoute(
+                        builder: (context) => AboutUsScreen(darkMode: _darkMode),
+                      ),
+                    );
+                  },
+                ),
+                Divider(
+                  color: _darkMode ? Colors.grey[800] : Colors.grey[300],
+                  thickness: 1,
+                ),
+                _buildDrawerItem(
+                  icon: Icons.logout,
+                  title: 'Logout',
+                  darkMode: _darkMode,
+                  onTap: () {
+                    Navigator.pop(context);
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(
+                          'Confirm Exit',
+                          style: TextStyle(
+                            color: _darkMode ? Colors.white : Colors.black,
+                          ),
                         ),
-                        TextButton(
-                          onPressed: () {
-                            exit(0);
-                          },
-                          child: Text('Exit'),
+                        backgroundColor: _darkMode ? Color(0xff1a0d24) : Colors.white,
+                        content: Text(
+                          'Are you sure you want to exit the app?',
+                          style: TextStyle(
+                            color: _darkMode ? Colors.white : Colors.black,
+                          ),
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _speak("Cancelled");
+                            },
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: _darkMode ? Colors.white : Color(0xff6a1b9a),
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              exit(0);
+                            },
+                            child: Text(
+                              'Exit',
+                              style: TextStyle(
+                                color: _darkMode ? Colors.white : Color(0xff6a1b9a),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: BottomAppBar(
-          color: Color(0xff281537),
+          color: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
           child: Container(
             height: MediaQuery.of(context).size.height * 0.15,
             child: Row(

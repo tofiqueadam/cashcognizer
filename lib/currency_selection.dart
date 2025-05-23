@@ -1,107 +1,145 @@
 import 'package:flutter/material.dart';
 
 class CurrencySelectionScreen extends StatefulWidget {
+  final bool initialDarkMode;
+  final ValueChanged<bool>? onDarkModeChanged;
+
+  const CurrencySelectionScreen({
+    Key? key,
+    this.initialDarkMode = false,
+    this.onDarkModeChanged,
+  }) : super(key: key);
+
   @override
   _CurrencySelectionScreenState createState() => _CurrencySelectionScreenState();
 }
 
 class _CurrencySelectionScreenState extends State<CurrencySelectionScreen> {
-  String selectedCurrency = "ETB";
+  late String _selectedCurrency;
+  late bool _darkMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCurrency = "ETB";
+    _darkMode = widget.initialDarkMode;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff281537), // Set the same color as BottomAppBar
+        backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
         title: Text(
           "Select Currency",
-          style: TextStyle(color: Colors.white), // Set the app bar text color to white
+          style: TextStyle(color: Colors.white),
         ),
-        iconTheme: IconThemeData(color: Colors.white), // Set the back icon color to white
+        iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: Icon(_darkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () {
+              setState(() => _darkMode = !_darkMode);
+              widget.onDarkModeChanged?.call(_darkMode);
+            },
+          ),
+        ],
       ),
       body: Container(
-        color: Colors.black, // Set the body background color to black
+        color: _darkMode ? Colors.black : Colors.grey[100],
         child: Column(
           children: [
-            const SizedBox(height: 30),
-            ListTile(
-              leading: Image.asset('assets/ethiopian_flag.png', width: 40), // Ethiopian Birr Flag
-              title: Text(
-                'Ethiopian Birr (ETB)',
-                style: TextStyle(color: Colors.white), // Set the text color to white
-              ),
-              trailing: Radio<String>(
-                value: "ETB",
-                groupValue: selectedCurrency,
-                onChanged: (value) {
-                  setState(() {
-                    selectedCurrency = value!;
-                  });
-                },
-              ),
+            _buildSectionHeader("Available Currencies"),
+            _buildCurrencyTile(
+              'assets/ethiopian_flag.png',
+              'Ethiopian Birr (ETB)',
+              "ETB",
+              true,
             ),
-            ListTile(
-              leading: Image.asset('assets/usa_flag.jpg', width: 40), // US Dollar Flag
-              title: Text(
-                'US Dollar (USD)',
-                style: TextStyle(color: Colors.white), // Set the text color to white
-              ),
-              trailing: Radio<String>(
-                value: "USD",
-                groupValue: selectedCurrency,
-                onChanged: null, // Disabled
-              ),
+            _buildCurrencyTile(
+              'assets/usa_flag.jpg',
+              'US Dollar (USD)',
+              "USD",
+              false,
             ),
-            ListTile(
-              leading: Image.asset('assets/uk_flag.jpg', width: 40), // British Pound Flag
-              title: Text(
-                'British Pound (GBP)',
-                style: TextStyle(color: Colors.white), // Set the text color to white
-              ),
-              trailing: Radio<String>(
-                value: "GBP",
-                groupValue: selectedCurrency,
-                onChanged: null, // Disabled
-              ),
+            _buildCurrencyTile(
+              'assets/uk_flag.jpg',
+              'British Pound (GBP)',
+              "GBP",
+              false,
             ),
-            ListTile(
-              leading: Image.asset('assets/eu_flag.jpg', width: 40), // Euro Flag
-              title: Text(
-                'Euro (EUR)',
-                style: TextStyle(color: Colors.white), // Set the text color to white
-              ),
-              trailing: Radio<String>(
-                value: "EUR",
-                groupValue: selectedCurrency,
-                onChanged: null, // Disabled
-              ),
+            _buildCurrencyTile(
+              'assets/eu_flag.jpg',
+              'Euro (EUR)',
+              "EUR",
+              false,
             ),
-            const SizedBox(height: 310),
-
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xff543378FF), // Same color as the app bar
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff543378),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  minimumSize: Size(double.infinity, 50),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-              ),
-              onPressed: () {
-                Navigator.pop(context); // Go back to the home screen
-              },
-              icon: Icon(Icons.check, color: Colors.white,), // Add the right icon
-              label: Text(
-                'Continue',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                onPressed: () {
+                  Navigator.pop(context, _selectedCurrency);
+                },
+                icon: Icon(Icons.check, color: Colors.white),
+                label: Text(
+                  'Continue',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Color(0xff281537), // Set the BottomAppBar color to match the AppBar
-        child: SizedBox(height: 0), // Ensure there's no additional height added
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: _darkMode ? Colors.white70 : Colors.black54,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrencyTile(String imagePath, String title, String currencyCode, bool enabled) {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: _darkMode ? Color(0xff1a0d24) : Colors.grey[200],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        leading: Image.asset(imagePath, width: 40),
+        title: Text(
+          title,
+          style: TextStyle(color: _darkMode ? Colors.white : Colors.black),
+        ),
+        trailing: Radio<String>(
+          value: currencyCode,
+          groupValue: _selectedCurrency,
+          onChanged: enabled
+              ? (value) {
+            setState(() {
+              _selectedCurrency = value!;
+            });
+          }
+              : null,
+          activeColor: Color(0xff6a1b9a),
+        ),
       ),
     );
   }

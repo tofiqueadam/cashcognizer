@@ -2,80 +2,146 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
+  final bool initialDarkMode;
+  final ValueChanged<bool>? onDarkModeChanged;
+
+  const LanguageSelectionScreen({
+    Key? key,
+    this.initialDarkMode = false,
+    this.onDarkModeChanged,
+  }) : super(key: key);
+
   @override
   _LanguageSelectionScreenState createState() => _LanguageSelectionScreenState();
 }
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
-  String _selectedLanguage = 'English';
+  late String _selectedLanguage;
+  late bool _darkMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLanguage = 'English';
+    _darkMode = widget.initialDarkMode;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Set the system navigation bar color to match the BottomAppBar color
+    // Set system UI colors based on theme
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: Color(0xff281537), // Set your desired color here
+      systemNavigationBarColor: _darkMode ? const Color(0xff281537) : const Color(0xff6a1b9a),
+      systemNavigationBarIconBrightness: Brightness.light,
     ));
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff281537), // Set the same color as BottomAppBar
+        backgroundColor: _darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
         title: Text(
-          'Select Language',
-          style: TextStyle(color: Colors.white), // Set the app bar text color to white
+          "Select Language",
+          style: TextStyle(color: Colors.white),
         ),
-        iconTheme: IconThemeData(color: Colors.white), // Set the back icon color to white
+        iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: Icon(_darkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () {
+              setState(() => _darkMode = !_darkMode);
+              widget.onDarkModeChanged?.call(_darkMode);
+            },
+          ),
+        ],
       ),
       body: Container(
-        color: Colors.black, // Set the body background color to black
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                'Please select your preferred language:',
-                style: TextStyle(fontSize: 16, color: Color(0xffFFF5EE)),
+        color: _darkMode ? Colors.black : Colors.grey[100],
+        child: Column(
+          children: [
+            _buildSectionHeader("Available Languages"),
+            _buildLanguageTile(
+              'English',
+              true,
+            ),
+            _buildLanguageTile(
+              'Amharic',
+              true,
+            ),
+            _buildLanguageTile(
+              'Spanish',
+              true,
+            ),
+            _buildLanguageTile(
+              'Chinese',
+              true,
+            ),
+            _buildLanguageTile(
+              'Arabic',
+              true,
+            ),
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _darkMode ? Color(0xff6a1b9a) : Color(0xff543378),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  minimumSize: Size(double.infinity, 50),
+                ),
+                onPressed: () {
+                  Navigator.pop(context, _selectedLanguage);
+                },
+                icon: Icon(Icons.check, color: Colors.white),
+                label: Text(
+                  'Continue',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
-              SizedBox(height: 10),
-              _buildLanguageOption('Detected Language'),
-              _buildLanguageOption('English'),
-              _buildLanguageOption('Amharic'),
-              _buildLanguageOption('Spanish'),
-              _buildLanguageOption('Chinese'),
-              _buildLanguageOption('Arabic'),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Color(0xff281537), // Set the BottomAppBar color to match the AppBar
       ),
     );
   }
 
-  Widget _buildLanguageOption(String language) {
+  Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1.0),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 0), // Remove the default padding
-        title: Text(
-          language,
-          style: TextStyle(color: Colors.white), // Set the text color to white
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: _darkMode ? Colors.white70 : Colors.black54,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
-        leading: Radio<String>(
-          value: language,
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(String title, bool enabled) {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: _darkMode ? Color(0xff1a0d24) : Colors.grey[200],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListTile(
+        title: Text(
+          title,
+          style: TextStyle(color: _darkMode ? Colors.white : Colors.black),
+        ),
+        trailing: Radio<String>(
+          value: title,
           groupValue: _selectedLanguage,
-          onChanged: (String? value) {
+          onChanged: enabled
+              ? (value) {
             setState(() {
               _selectedLanguage = value!;
             });
-          },
+          }
+              : null,
+          activeColor: Color(0xff6a1b9a),
         ),
-        onTap: () {
-          setState(() {
-            _selectedLanguage = language;
-          });
-        },
       ),
     );
   }
