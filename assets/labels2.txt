@@ -1,0 +1,6 @@
+0 5 Birr
+1 10 Birr
+2 50 Birr
+3 100 Birr
+4 200 Birr
+5 Unrecognized
