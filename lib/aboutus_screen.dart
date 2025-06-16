@@ -40,18 +40,20 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: widget.darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+      systemNavigationBarColor: widget.darkMode ? Color(0xFF121212) : Color(0xff6a1b9a),
       systemNavigationBarIconBrightness: Brightness.light,
     ));
 
-    final backgroundColor = widget.darkMode ? Colors.black : Colors.grey[100]!;
-    final primaryColor = widget.darkMode ? Color(0xff281537) : Color(0xff6a1b9a);
-    final textColor = widget.darkMode ? Colors.white : Colors.black87;
-    final cardColor = widget.darkMode ? Colors.grey[900]! : Colors.white;
+    // Colors - dark mode improvements only
+    final backgroundColor = widget.darkMode ? Color(0xFF121212) : Colors.grey[100]!;
+    final primaryColor = widget.darkMode ? Color(0xFFBB86FC) : Color(0xff6a1b9a);
+    final textColor = widget.darkMode ? Colors.white.withOpacity(0.9) : Colors.black87;
+    final cardColor = widget.darkMode ? Color(0xFF1E1E1E) : Colors.white;
+    final secondaryTextColor = widget.darkMode ? Colors.white.withOpacity(0.7) : Colors.black87.withOpacity(0.7);
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: primaryColor,
+        backgroundColor: widget.darkMode ? Color(0xFF1E1E1E) : primaryColor,
         title: Text("About Us", style: TextStyle(color: Colors.white)),
         iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
@@ -66,7 +68,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
               SizedBox(height: 20),
               CircleAvatar(
                 radius: 60,
-                backgroundColor: primaryColor.withOpacity(0.2),
+                backgroundColor: primaryColor.withOpacity(widget.darkMode ? 0.08 : 0.2),
                 child: Icon(Icons.people_alt, size: 50, color: primaryColor),
               ),
               SizedBox(height: 30),
@@ -83,7 +85,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                 "The developers behind this amazing app",
                 style: TextStyle(
                   fontSize: 16,
-                  color: textColor.withOpacity(0.8),
+                  color: secondaryTextColor,
                 ),
               ),
               SizedBox(height: 30),
@@ -122,18 +124,32 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
               SizedBox(height: 30),
               _buildTeamMember(
                 name: "Tofique",
-                role: "Lead Developer",
+                role: "Developer",
                 color: primaryColor,
                 textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
                 cardColor: cardColor,
+                darkMode: widget.darkMode,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               _buildTeamMember(
-                name: "The Team",
-                role: "Design & Development",
+                name: "Yordanos",
+                role: "Developer",
                 color: primaryColor,
                 textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
                 cardColor: cardColor,
+                darkMode: widget.darkMode,
+              ),
+              SizedBox(height: 10),
+              _buildTeamMember(
+                name: "Mulugeta",
+                role: "Developer",
+                color: primaryColor,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                cardColor: cardColor,
+                darkMode: widget.darkMode,
               ),
               SizedBox(height: 30),
               Text(
@@ -141,6 +157,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   color: primaryColor,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               SizedBox(height: 40),
@@ -156,7 +173,9 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
     required String role,
     required Color color,
     required Color textColor,
+    required Color secondaryTextColor,
     required Color cardColor,
+    required bool darkMode,
   }) {
     return Card(
       color: cardColor,
@@ -169,7 +188,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: color.withOpacity(0.2),
+              backgroundColor: color.withOpacity(darkMode ? 0.08 : 0.2),
               child: Icon(Icons.person, color: color),
             ),
             SizedBox(width: 16),
@@ -190,7 +209,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
                     role,
                     style: TextStyle(
                       fontSize: 14,
-                      color: textColor.withOpacity(0.7),
+                      color: secondaryTextColor,
                     ),
                   ),
                 ],

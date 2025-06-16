@@ -3,6 +3,7 @@ class Assets {
   Assets._();
 
   static const String assetsBackground = 'assets/background.jpg';
+  static const String assetsBestInt8 = 'assets/best_int8.tflite';
   static const String assetsEnd = 'assets/end.mp3';
   static const String assetsEthiopianFlag = 'assets/ethiopian_flag.png';
   static const String assetsEuFlag = 'assets/eu_flag.jpg';
@@ -11,6 +12,9 @@ class Assets {
   static const String assetsGoogle = 'assets/google.jpg';
   static const String assetsImg = 'assets/img.png';
   static const String assetsLabels = 'assets/labels.txt';
+  static const String assetsLabels1 = 'assets/labels1.txt';
+  static const String assetsLabels2 = 'assets/labels2.txt';
+  static const String assetsLabels4 = 'assets/labels4.txt';
   static const String assetsLogo = 'assets/logo.png';
   static const String assetsLogo1 = 'assets/logo1.jpg';
   static const String assetsLogo3 = 'assets/logo3.png';
@@ -18,6 +22,8 @@ class Assets {
   static const String assetsLogo5 = 'assets/logo5.webp';
   static const String assetsLogo6 = 'assets/logo6.png';
   static const String assetsModelUnquant = 'assets/model_unquant.tflite';
+  static const String assetsModelUnquant2 = 'assets/model_unquant2.tflite';
+  static const String assetsModelUnquant4 = 'assets/model_unquant4.tflite';
   static const String assetsOsIP = 'assets/OsIP.jpg';
   static const String assetsSocial = 'assets/social.png';
   static const String assetsStart = 'assets/start.mp3';

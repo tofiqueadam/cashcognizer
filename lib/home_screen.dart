@@ -62,7 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
     '10 Birr',
     '50 Birr',
     '100 Birr',
-    '200 Birr'
+    '200 Birr',
+    'Unrecognized'
+
   ];
 
   @override
@@ -82,17 +84,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initTts() async {
     await flutterTts.awaitSpeakCompletion(true);
 
-    // Get available voices
+    // Fix: Proper type casting for voices
     var voices = await flutterTts.getVoices;
     if (voices != null) {
-      _availableVoices = voices
-          .cast<Map<dynamic, dynamic>>()
+      _availableVoices = (voices as List<dynamic>)
           .where((voice) => voice['name'] != null && voice['locale'] != null)
           .map((voice) => {
-                'name': voice['name']!,
-                'locale': voice['locale']!,
-              })
-          .toList();
+        'name': voice['name'].toString(),
+        'locale': voice['locale'].toString(),
+      })
+          .toList()
+          .cast<Map<String, String>>(); // Explicit cast
     }
 
     setState(() {});
@@ -160,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (recognitions != null && recognitions.isNotEmpty) {
           final best = recognitions.firstWhere(
-            (r) => validCurrencies.contains(r['label']),
+                (r) => validCurrencies.contains(r['label']),
             orElse: () => recognitions.first,
           );
 
@@ -168,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label = validCurrencies.contains(best['label'])
                 ? best['label']
                 : 'Unrecognized Note';
-            confidence = (best['confidence'] * 100);
+            confidence = (best['confidence'] * 100-5.3);
           });
 
           final message = label == 'Unrecognized Note'
@@ -303,6 +305,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
+
   void _toggleFlash() async {
     if (_cameraController != null && _cameraController!.value.isInitialized) {
       if (_flashOn) {
@@ -398,6 +402,14 @@ class _HomeScreenState extends State<HomeScreen> {
           // Swiped up - switch to text mode
           _handleModeChange('text');
         }
+
+
+
+
+
+
+
+
       },
       onTap: () {
         if (!_gesturesEnabled) return;
@@ -520,7 +532,82 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ],
-            ),
+
+
+            //
+            //
+            //
+            //
+            //     return StreamBuilder<User?>(
+            // stream: FirebaseAuth.instance.authStateChanges(),
+            // builder: (context, authSnapshot) {
+            //   final user = authSnapshot.data;
+            //   final screenHeight = MediaQuery.of(context).size.height;
+            //   final panelHeight = screenHeight * _panelHeightFactor;
+            //
+            //   return _buildGestureDetector(
+            //     Scaffold(
+            //       appBar: AppBar(
+            //         backgroundColor: settingsProvider.darkMode ? const Color(0xff281537) : const Color(0xff6a1b9a),
+            //         title: Text(
+            //           currentMode == 'currency'
+            //               ? 'Currency Detection'
+            //               : 'Text Recognition',
+            //           style: TextStyle(color: Colors.white),
+            //         ),
+            //         leading: Builder(
+            //           builder: (context) => IconButton(
+            //             icon: Icon(Icons.menu, color: Colors.white),
+            //             onPressed: () => Scaffold.of(context).openDrawer(),
+            //           ),
+            //         ),
+            //         actions: [
+            //           if (_isSpeaking && currentMode == 'text')
+            //             IconButton(
+            //               icon: Icon(Icons.stop, color: Colors.white),
+            //               onPressed: () async {
+            //                 await flutterTts.stop();
+            //                 setState(() {
+            //                   _isSpeaking = false;
+            //                   _currentSpokenText = '';
+            //                   _currentSpokenIndex = -1;
+            //                 });
+            //               },
+            //             ),
+            //           IconButton(
+            //             icon: currentMode == "text"
+            //                 ? Icon(Icons.language, color: Colors.white)
+            //                 : Image.asset('assets/ethiopian_flag.png',
+            //                 width: 24, height: 24),
+            //             onPressed: () => Navigator.push(
+            //               context,
+            //               MaterialPageRoute(
+            //                 builder: (context) => currentMode == "text"
+            //                     ? LanguageSelectionScreen()
+            //                     : CurrencySelectionScreen(),
+            //               ),
+            //             ),
+            //           ),
+            //           IconButton(
+            //             icon: Icon(Icons.info_outline, color: Colors.white),
+            //             onPressed: () => Navigator.push(
+            //               context,
+            //               MaterialPageRoute(
+            //                   builder: (context) => AboutScreen(darkMode: settingsProvider.darkMode)),
+            //             ),
+            //           ),
+            //         ],
+
+
+
+
+
+
+
+
+
+
+                  ),
             drawer: _buildDrawer(user, settingsProvider),
             body: Container(
               color: settingsProvider.darkMode ? Colors.black : Colors.grey[100],
@@ -646,6 +733,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ],
                                             ),
                                           )
+
+
+
+
+
+
+
+
+
                                         : Container(
                                             height: panelHeight,
                                             decoration: BoxDecoration(
@@ -922,6 +1018,11 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             _buildDrawerItem(
+
+
+
+
+
               icon: Icons.settings,
               title: 'Settings',
               darkMode: settingsProvider.darkMode,
@@ -984,6 +1085,12 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildDrawerItem(
               icon: Icons.logout,
               title: 'Logout',
+
+
+
+
+
+
               darkMode: settingsProvider.darkMode,
               onTap: () {
                 Navigator.pop(context);
@@ -1020,6 +1127,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       TextButton(
                         onPressed: () {
                           exit(0);
+
+
+
+
+
+
+
+
                         },
                         child: Text(
                           'Exit',
@@ -1063,4 +1178,15 @@ class _HomeScreenState extends State<HomeScreen> {
       hoverColor: darkMode ? Colors.grey[800] : Colors.grey[200],
     );
   }
+  @override
+  void dispose() {
+    // Add proper cleanup
+    _cameraController?.dispose();
+    flutterTts.stop();
+    Tflite.close();
+    textRecognizer.close();
+    _audioPlayer.dispose();
+    super.dispose();
+  }
 }
+

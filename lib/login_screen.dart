@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'screen_reader_helper.dart';
 import 'package:provider/provider.dart';
 import 'settings_provider.dart';
+
 class LoginScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
 
@@ -48,7 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text.trim(),
         );
 
-        // Stop reading before navigation
         await ScreenReaderHelper.stop();
 
         Navigator.pushReplacement(
@@ -77,6 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
+
+    final inputTextStyle = TextStyle(
+      color: Colors.black87,  // Darker text color for better visibility
+      fontSize: 16,
+    );
 
     return Scaffold(
       body: Stack(
@@ -131,10 +136,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           label: "Email input field",
                           child: TextFormField(
                             controller: _emailController,
-                            decoration: const InputDecoration(
-                              hintText: "Gmail",
+                            style: inputTextStyle,
+
+                            decoration: InputDecoration(
+                              hintText: "Email",
+                              hintStyle: TextStyle(color: Colors.grey[600]),
                               prefixIcon: Icon(Icons.mail, color: Color(0xff387780)),
                               suffixIcon: Icon(Icons.check, color: Colors.grey),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xff387780)),
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -155,9 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextFormField(
                             controller: _passwordController,
                             obscureText: !_isPasswordVisible,
+                            style: inputTextStyle,
+
                             decoration: InputDecoration(
                               hintText: "Password",
-                              prefixIcon: const Icon(
+                              hintStyle: TextStyle(color: Colors.grey[600]),
+                              prefixIcon: Icon(
                                 Icons.lock,
                                 color: Color(0xff387780),
                               ),
@@ -180,6 +197,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                     );
                                   }
                                 },
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xff387780)),
                               ),
                             ),
                             validator: (value) {

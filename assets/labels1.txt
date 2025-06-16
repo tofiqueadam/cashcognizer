@@ -1,5 +1,5 @@
-0
-1
-2
-3
-4
+5 Birr
+10 Birr
+50 Birr
+100 Birr
+200 Birr

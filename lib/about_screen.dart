@@ -44,18 +44,21 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: widget.darkMode ? Color(0xff281537) : Color(0xff6a1b9a),
+      systemNavigationBarColor: widget.darkMode ? Color(0xFF121212) : Color(0xff6a1b9a),
       systemNavigationBarIconBrightness: Brightness.light,
     ));
 
-    final backgroundColor = widget.darkMode ? Colors.black : Colors.grey[100];
-    final primaryColor = widget.darkMode ? Color(0xff281537) : Color(0xff6a1b9a);
-    final textColor = widget.darkMode ? Colors.white : Colors.black87;
-    final buttonColor = widget.darkMode ? Color(0xff543378) : Color(0xff6a1b9a);
+    // Light mode colors (unchanged)
+    final backgroundColor = widget.darkMode ? Color(0xFF121212) : Colors.grey[100];
+    final primaryColor = widget.darkMode ? Color(0xFFBB86FC) : Color(0xff6a1b9a); // Changed to Material purple-200 in dark
+    final textColor = widget.darkMode ? Colors.white.withOpacity(0.9) : Colors.black87;
+    final buttonColor = widget.darkMode ? Color(0xFFBB86FC) : Color(0xff6a1b9a); // Match primary color
+    final iconColor = widget.darkMode ? Color(0xFFBB86FC) : primaryColor; // Purple-200 in dark
+    final containerColor = widget.darkMode ? Color(0xFF1E1E1E) : Colors.grey[200];
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: primaryColor,
+        backgroundColor: widget.darkMode ? Color(0xFF1E1E1E) : primaryColor,
         title: Text('Help', style: TextStyle(color: Colors.white)),
         iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
@@ -72,7 +75,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   child: Column(
                     children: [
                       SizedBox(height: 20),
-                      Icon(Icons.help_outline, size: 60, color: primaryColor),
+                      Icon(Icons.help_outline, size: 60, color: iconColor),
                       SizedBox(height: 30),
                       Text(
                         'How to Use CashCognize',
@@ -90,6 +93,8 @@ class _AboutScreenState extends State<AboutScreen> {
                         description: 'Point your camera at any Ethiopian currency and CashCognize will identify it.',
                         color: primaryColor,
                         textColor: textColor,
+                        iconColor: iconColor,
+                        darkMode: widget.darkMode,
                       ),
                       SizedBox(height: 20),
                       _buildFeatureItem(
@@ -98,6 +103,8 @@ class _AboutScreenState extends State<AboutScreen> {
                         description: 'Switch to text mode to read and hear text from documents or other sources.',
                         color: primaryColor,
                         textColor: textColor,
+                        iconColor: iconColor,
+                        darkMode: widget.darkMode,
                       ),
                       SizedBox(height: 20),
                       _buildFeatureItem(
@@ -106,12 +113,14 @@ class _AboutScreenState extends State<AboutScreen> {
                         description: 'Having trouble? Try adjusting distance, lighting, or orientation of the object.',
                         color: primaryColor,
                         textColor: textColor,
+                        iconColor: iconColor,
+                        darkMode: widget.darkMode,
                       ),
                       SizedBox(height: 30),
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: widget.darkMode ? Colors.grey[900] : Colors.grey[200],
+                          color: containerColor,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -133,7 +142,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: buttonColor,
-                    foregroundColor: Colors.white,
+                    foregroundColor: widget.darkMode ? Colors.black : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
@@ -163,6 +172,8 @@ class _AboutScreenState extends State<AboutScreen> {
     required String description,
     required Color color,
     required Color textColor,
+    required Color iconColor,
+    required bool darkMode,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,10 +181,10 @@ class _AboutScreenState extends State<AboutScreen> {
         Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: darkMode ? color.withOpacity(0.08) : color.withOpacity(0.2),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 24, color: color),
+          child: Icon(icon, size: 24, color: iconColor),
         ),
         SizedBox(width: 16),
         Expanded(
@@ -193,7 +204,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 description,
                 style: TextStyle(
                   fontSize: 16,
-                  color: textColor.withOpacity(0.8),
+                  color: darkMode ? textColor.withOpacity(0.8) : textColor.withOpacity(0.8),
                 ),
               ),
             ],

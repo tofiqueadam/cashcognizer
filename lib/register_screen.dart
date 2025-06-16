@@ -52,11 +52,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: _passwordController.text.trim(),
         );
 
-        // Update user profile with display name
         await userCredential.user!.updateProfile(displayName: _nameController.text.trim());
         await userCredential.user!.reload();
 
-        // Stop reading before navigation
         await ScreenReaderHelper.stop();
 
         Navigator.pushReplacement(
@@ -74,6 +72,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   @override
   void dispose() {
     ScreenReaderHelper.stop();
@@ -87,6 +102,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context);
+
+    final inputTextStyle = TextStyle(
+      color: Colors.black87,  // Darker text color for better visibility
+      fontSize: 16,
+    );
 
     return Scaffold(
       body: Stack(
@@ -142,9 +162,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           label: "Full name input field",
                           child: TextFormField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
+                            style: inputTextStyle,
+                            decoration: InputDecoration(
                               hintText: "Full Name",
+                              hintStyle: TextStyle(color: Colors.grey[600]),
                               prefixIcon: Icon(Icons.person, color: Color(0xff387780)),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xff387780)),
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -165,9 +193,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           label: "Email input field",
                           child: TextFormField(
                             controller: _emailController,
-                            decoration: const InputDecoration(
+                            style: inputTextStyle,
+                            decoration: InputDecoration(
                               hintText: "Email",
+                              hintStyle: TextStyle(color: Colors.grey[600]),
                               prefixIcon: Icon(Icons.email, color: Color(0xff387780)),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xff387780)),
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -192,12 +228,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: TextFormField(
                             controller: _passwordController,
                             obscureText: !_isPasswordVisible,
+                            style: inputTextStyle,
                             decoration: InputDecoration(
                               hintText: "Password",
-                              prefixIcon: const Icon(
-                                Icons.lock,
-                                color: Color(0xff387780),
-                              ),
+                              hintStyle: TextStyle(color: Colors.grey[600]),
+                              prefixIcon: Icon(Icons.lock, color: Color(0xff387780)),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -215,6 +250,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     );
                                   }
                                 },
+                              ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xff387780)),
                               ),
                             ),
                             validator: (value) {
@@ -240,12 +281,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: TextFormField(
                             controller: _confirmPasswordController,
                             obscureText: !_isConfirmPasswordVisible,
+                            style: inputTextStyle,
                             decoration: InputDecoration(
                               hintText: "Confirm Password",
-                              prefixIcon: const Icon(
-                                Icons.lock,
-                                color: Color(0xff387780),
-                              ),
+                              hintStyle: TextStyle(color: Colors.grey[600]),
+                              prefixIcon: Icon(Icons.lock, color: Color(0xff387780)),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -264,6 +304,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                 },
                               ),
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xff387780)),
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -281,6 +327,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                         ),
+
+
+
+
+
+
+
+
+
+
+
+
                         const SizedBox(height: 80),
                         // Sign Up Button
                         Semantics(
@@ -294,14 +352,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 width: 300,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(30),
-                                  gradient: const LinearGradient(
+                                  gradient: LinearGradient(
                                     colors: [
                                       Color(0xff387780),
                                       Color(0xff281537),
                                     ],
                                   ),
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: Text(
                                     'SIGN UP',
                                     style: TextStyle(
@@ -325,7 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text(
+                                Text(
                                   "Already have an account?",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -342,7 +400,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     );
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     "Sign In",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
